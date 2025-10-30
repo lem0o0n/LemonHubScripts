@@ -662,83 +662,15 @@ textBox.FocusLost:Connect(function(enterPressed)
 
 end)
 
--- LocalScript in StarterPlayerScripts
-
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-
--- Create ScreenGui
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "TeleportGUI"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = player:WaitForChild("PlayerGui")
-
--- Create main frame (centered, normal size)
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 400, 0, 50)
-mainFrame.Position = UDim2.new(0.5, -220, 0.0, 0) -- centered horizontally, 10% from top
-mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-mainFrame.BackgroundTransparency = 0.2
-mainFrame.Parent = screenGui
-
--- Rounded corners
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 8)
-corner.Parent = mainFrame
-
--- Helper function to create teleport buttons
-local function createButton(name, positionX, cf)
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0, 90, 1, 0)
-    button.Position = UDim2.new(positionX, 5, 0, 0)
-    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    button.TextColor3 = Color3.fromRGB(255, 255, 255)
-    button.Text = name
-    button.Font = Enum.Font.SourceSansBold
-    button.TextSize = 18
-    button.Parent = mainFrame
-
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 6)
-    btnCorner.Parent = button
-
-    button.MouseButton1Click:Connect(function()
-        local character = player.Character
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            character.HumanoidRootPart.CFrame = cf
-        end
-    end)
-end
-
--- Teleport CFrames
-local cframes = {
-    ["بدايه"] = CFrame.new(257.512787, 8.3040123, 110.829781, -0.999462366, 3.58744536e-08, -0.032786157, 3.88868955e-08, 1, -9.12438338e-08, 0.032786157, -9.24697332e-08, -0.999462366),
-    ["فوق 1"] = CFrame.new(243.351089, 163.638504, -90.5451355, -0.999919295, 3.55999341e-09, -0.0127055431, 3.51507135e-09, 1, 3.55796215e-09, 0.0127055431, 3.5130141e-09, -0.999919295),
-    ["عشب"] = CFrame.new(188.716919, 34.3515091, 61.8591003, -0.834032834, -9.75880088e-09, -0.551714838, -1.67010139e-08, 1, 7.55896501e-09, 0.551714838, 1.55186228e-08, -0.834032834),
-    ["لوحة"] = CFrame.new(334.484833, 4.16418743, 443.84259, -0.965681732, -2.41917975e-09, -0.259728312, 6.2285781e-09, 1, -3.24724105e-08, 0.259728312, -3.29757484e-08, -0.965681732)
-}
-
--- Create buttons
-local posX = 0
-for name, cf in pairs(cframes) do
-    createButton(name, posX, cf)
-    posX += 0.25
-end
 
 
--- N BUTTON 
 
-local Players = game:GetService("Players")
 
-local TweenService = game:GetService("TweenService")
 
-local TeleportService = game:GetService("TeleportService")
 
-local plr = Players.LocalPlayer
 
-local uis = game:GetService("UserInputService")
 
--- ScreenGui
+
 
 local gui = Instance.new("ScreenGui")
 
@@ -983,96 +915,157 @@ end
 espBtn.MouseButton1Click:Connect(function()
 
 	espEnabled = not espEnabled
+l
+  
 
-	espBtn.BackgroundColor3 = espEnabled and Color3.fromRGB(0, 170, 0) or Color3.fromRGB(20, 20, 20)
 
-	if espEnabled then enableESP() else disableESP() end
 
-end)
+-- LocalScript in StarterPlayerScripts
 
------------------
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
 
--- Rjoin Click --
+-- Create ScreenGui for main teleport GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TeleportGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
 
------------------
+-- Main frame (centered)
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 400, 0, 50)
+mainFrame.Position = UDim2.new(0.5, -200, 0.1, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BackgroundTransparency = 0.2
+mainFrame.Visible = false -- start hidden
+mainFrame.Parent = screenGui
 
-rjoinBtn.MouseButton1Click:Connect(function()
+-- Rounded corners
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = mainFrame
 
-	TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, plr)
+-- Make frame draggable
+local function enableDragging(frame)
+    local dragging, dragInput, dragStart, startPos
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                   startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or
+           input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or
+           input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+end
+enableDragging(mainFrame)
 
-end)
- 
--- K BUTTONS
-local plr = game.Players.LocalPlayer
-
-local uis = game:GetService("UserInputService")
-
-local hrp = plr.Character:WaitForChild("HumanoidRootPart")
-
--- ScreenGui
-
-local gui = Instance.new("ScreenGui")
-
-gui.Name = "TPGui"
-
-gui.ResetOnSpawn = false
-
-gui.Parent = plr:WaitForChild("PlayerGui")
-
--- Main Frame
-
-local main = Instance.new("Frame", gui)
-
-main.Size, main.Position, main.BackgroundColor3, main.Visible, main.Draggable = UDim2.new(0,400,0,40), UDim2.new(0.5,-200,0,0), Color3.new(0,0,0), false, true
-
-Instance.new("UICorner", main).CornerRadius = UDim.new(0,12)
-
--- Create button helper
-
-local function btn(name,pos,cf)
-
-	local b = Instance.new("TextButton", main)	b.Size, b.Position, b.BackgroundColor3, b.Text, b.Font, b.TextSize = UDim2.new(0,90,1,0), UDim2.new(pos,5,0,0), Color3.fromRGB(40,40,40), name, Enum.Font.SourceSansBold, 20
-
-	b.TextColor3 = Color3.new(1,1,1)
-
-	Instance.new("UICorner", b).CornerRadius = UDim.new(0,8)
-
-	b.MouseButton1Click:Connect(function() hrp.CFrame = cf end)
-
+-- Teleport helper function
+local function getHRP()
+    local character = player.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        return character.HumanoidRootPart
+    end
 end
 
--- Buttons
+-- Create teleport buttons
+local function createButton(name, positionX, cf)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 90, 1, 0)
+    button.Position = UDim2.new(positionX, 5, 0, 0)
+    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Text = name
+    button.Font = Enum.Font.SourceSansBold
+    button.TextSize = 18
+    button.Parent = mainFrame
 
-btn("بدايه",0,CFrame.new(257.51,8.3,110.82))
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 6)
+    btnCorner.Parent = button
 
-btn("فوق 1",0.25,CFrame.new(243.35,163.63,-90.54))
+    button.MouseButton1Click:Connect(function()
+        local hrp = getHRP()
+        if hrp then hrp.CFrame = cf end
+    end)
+end
 
-btn("عشب",0.5,CFrame.new(334.48,4.16,443.84))
+-- CFrames table
+local cframes = {
+    ["بدايه"] = CFrame.new(257.512787, 8.3040123, 110.829781, -0.999462366, 3.58744536e-08, -0.032786157, 3.88868955e-08, 1, -9.12438338e-08, 0.032786157, -9.24697332e-08, -0.999462366),
+    ["فوق 1"] = CFrame.new(243.351089, 163.638504, -90.5451355, -0.999919295, 3.55999341e-09, -0.0127055431, 3.51507135e-09, 1, 3.55796215e-09, 0.0127055431, 3.5130141e-09, -0.999919295),
+    ["عشب"] = CFrame.new(188.716919, 34.3515091, 61.8591003, -0.834032834, -9.75880088e-09, -0.551714838, -1.67010139e-08, 1, 7.55896501e-09, 0.551714838, 1.55186228e-08, -0.834032834),
+    ["لوحة"] = CFrame.new(334.484833, 4.16418743, 443.84259, -0.965681732, -2.41917975e-09, -0.259728312, 6.2285781e-09, 1, -3.24724105e-08, 0.259728312, -3.29757484e-08, -0.965681732)
+}
 
-btn("لوحة",0.75,CFrame.new(188.71,34.35,61.85))
+-- Create buttons
+local posX = 0
+for name, cf in pairs(cframes) do
+    createButton(name, posX, cf)
+    posX += 0.25
+end
 
--- Toggle Button
+-- Toggle GUI with K key
+local guiVisible = false
+local function toggleGui()
+    guiVisible = not guiVisible
+    mainFrame.Visible = guiVisible
+end
 
-local toggleBtn = Instance.new("TextButton", gui)
-
-toggleBtn.Size, toggleBtn.Position, toggleBtn.Text, toggleBtn.BackgroundColor3, toggleBtn.TextColor3, toggleBtn.Font, toggleBtn.TextSize = UDim2.new(0,45,0,45), UDim2.new(0,780,0,10), "K", Color3.fromRGB(30,30,30), Color3.new(1,1,1), Enum.Font.SourceSansBold, 22
-
-toggleBtn.Active, toggleBtn.Draggable = true, true
-
-Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(1,0)
-
-toggleBtn.MouseButton1Click:Connect(function() main.Visible = not main.Visible end)
-
--- Toggle via K key
-
-uis.InputBegan:Connect(function(i,gp)
-
-	if not gp and i.KeyCode==Enum.KeyCode.K then main.Visible = not main.Visible end
-
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.K then
+        toggleGui()
+    end
 end)
-  
-  
-  
+
+-- Small button for mobile users
+local smallButtonGui = Instance.new("ScreenGui")
+smallButtonGui.Name = "ToggleButtonGUI"
+smallButtonGui.ResetOnSpawn = false
+smallButtonGui.Parent = player:WaitForChild("PlayerGui")
+
+local smallButton = Instance.new("TextButton")
+smallButton.Size = UDim2.new(0, 40, 0, 40)
+smallButton.Position = UDim2.new(1, -50, 0.1, 0)
+smallButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+smallButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+smallButton.Text = "K"
+smallButton.Font = Enum.Font.SourceSansBold
+smallButton.TextSize = 18
+smallButton.Parent = smallButtonGui
+
+local smallCorner = Instance.new("UICorner")
+smallCorner.CornerRadius = UDim.new(0, 6)
+smallCorner.Parent = smallButton
+
+-- Make small button draggable
+enableDragging(smallButton)
+
+-- Click small button = toggle GUI (like pressing K)
+smallButton.MouseButton1Click:Connect(toggleGui)
+
   
 
 
