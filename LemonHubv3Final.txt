@@ -662,113 +662,69 @@ textBox.FocusLost:Connect(function(enterPressed)
 
 end)
 
+-- LocalScript in StarterPlayerScripts
+
 local Players = game:GetService("Players")
-
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local Uis = game:GetService("UserInputService")
-
 local player = Players.LocalPlayer
 
-local hrp = player.Character:WaitForChild("HumanoidRootPart")
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TeleportGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- ScreenGui (persistent)
+-- Create main frame (centered, normal size)
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 400, 0, 50)
+mainFrame.Position = UDim2.new(0.5, -220, 0.0, 0) -- centered horizontally, 10% from top
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BackgroundTransparency = 0.2
+mainFrame.Parent = screenGui
 
-local gui = Instance.new("ScreenGui")
+-- Rounded corners
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = mainFrame
 
-gui.Name = "TeleportGUI"
+-- Helper function to create teleport buttons
+local function createButton(name, positionX, cf)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 90, 1, 0)
+    button.Position = UDim2.new(positionX, 5, 0, 0)
+    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Text = name
+    button.Font = Enum.Font.SourceSansBold
+    button.TextSize = 18
+    button.Parent = mainFrame
 
-gui.ResetOnSpawn = false
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 6)
+    btnCorner.Parent = button
 
-gui.Parent = game:GetService("StarterGui")
-
--- Main Frame
-
-local main = Instance.new("Frame", gui)
-
-main.Size = UDim2.new(0, 400, 0, 40)
-
-main.Position = UDim2.new(0.5, -200, 0.0, 0)
-
-main.BackgroundColor3 = Color3.fromRGB(0,0,0)
-
-main.Active, main.Visible = true, false
-
-main.Draggable = true
-
-Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
-
--- Helper function for buttons
-
-local function createBtn(name, pos, cf)
-
-    local b = Instance.new("TextButton", main)
-
-    b.Size = UDim2.new(0, 90, 1, 0)
-
-    b.Position = UDim2.new(pos, 5, 0, 0)
-
-    b.BackgroundColor3 = Color3.fromRGB(40,40,40)
-
-    b.TextColor3 = Color3.new(1,1,1)
-
-    b.Font = Enum.Font.SourceSansBold
-
-    b.TextSize = 20
-
-    b.Text = name
-
-    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
-
-    b.MouseButton1Click:Connect(function()
-
-        hrp.CFrame = cf
-
+    button.MouseButton1Click:Connect(function()
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            character.HumanoidRootPart.CFrame = cf
+        end
     end)
-
 end
 
--- Buttons
+-- Teleport CFrames
+local cframes = {
+    ["بدايه"] = CFrame.new(257.512787, 8.3040123, 110.829781, -0.999462366, 3.58744536e-08, -0.032786157, 3.88868955e-08, 1, -9.12438338e-08, 0.032786157, -9.24697332e-08, -0.999462366),
+    ["فوق 1"] = CFrame.new(243.351089, 163.638504, -90.5451355, -0.999919295, 3.55999341e-09, -0.0127055431, 3.51507135e-09, 1, 3.55796215e-09, 0.0127055431, 3.5130141e-09, -0.999919295),
+    ["عشب"] = CFrame.new(188.716919, 34.3515091, 61.8591003, -0.834032834, -9.75880088e-09, -0.551714838, -1.67010139e-08, 1, 7.55896501e-09, 0.551714838, 1.55186228e-08, -0.834032834),
+    ["لوحة"] = CFrame.new(334.484833, 4.16418743, 443.84259, -0.965681732, -2.41917975e-09, -0.259728312, 6.2285781e-09, 1, -3.24724105e-08, 0.259728312, -3.29757484e-08, -0.965681732)
+}
 
-createBtn("بدايه", 0, CFrame.new(257.512787, 8.3040123, 110.829781, -0.999462366, 3.58744536e-08, -0.032786157, 3.88868955e-08, 1, -9.12438338e-08, 0.032786157, -9.24697332e-08, -0.999462366))
+-- Create buttons
+local posX = 0
+for name, cf in pairs(cframes) do
+    createButton(name, posX, cf)
+    posX += 0.25
+end
 
-createBtn("فوق 1", 0.25, CFrame.new(243.351089, 163.638504, -90.5451355, -0.999919295, 3.55999341e-09, -0.0127055431, 3.51507135e-09, 1, 3.55796215e-09, 0.0127055431, 3.5130141e-09, -0.999919295))
-
-createBtn("عشب", 0.5, CFrame.new(334.484833, 4.16418743, 443.84259, -0.965681732, -2.41917975e-09, -0.259728312, 6.2285781e-09, 1, -3.24724105e-08, 0.259728312, -3.29757484e-08, -0.965681732))
-
-createBtn("لوحة", 0.75, CFrame.new(188.716919, 34.3515091, 61.8591003, -0.834032834, -9.75880088e-09, -0.551714838, -1.67010139e-08, 1, 7.55896501e-09, 0.551714838, 1.55186228e-08, -0.834032834))
-
--- Toggle Button
-
-local btn = Instance.new("TextButton", gui)
-
-btn.Size = UDim2.new(0, 45, 0, 45)
-
-btn.Position = UDim2.new(0, 780, 0, 10)
-
-btn.Text, btn.BackgroundColor3 = "K", Color3.fromRGB(30,30,30)
-
-btn.TextColor3 = Color3.new(1,1,1)
-
-btn.Font = Enum.Font.SourceSansBold
-
-btn.TextSize = 22
-
-btn.Active, btn.Draggable = true, true
-
-Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
-
--- Toggle Function
-
-local function toggle() main.Visible = not main.Visible end
-
-btn.MouseButton1Click:Connect(toggle)
-
-Uis.InputBegan:Connect(function(input, gp)
-
-    if not gp and input.KeyCode == Enum.KeyCode.K then toggle() end
-
-end)
 
 -- N BUTTON 
 
