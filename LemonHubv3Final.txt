@@ -22,7 +22,8 @@ local whitelist = {
   "ahmedali0307",
   "Ahmed_Not9",
   "0v93",
-
+"Hatred_a3",
+"Fu231",
      "DEMENT3DX",
 "shadowformerks",
     "Iowtoya", 
