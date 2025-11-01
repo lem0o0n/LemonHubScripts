@@ -35,11 +35,11 @@ local whitelist = {
     "rektifn", 
 
     "E3QOO", 
-
+"6_3z",
     "Shadowformerks", 
-
-    "ccpb"
-
+"AndDelete_7",
+    "ccpb",
+"hatred_a3",
 }
 
 local function isWhitelisted(username)
