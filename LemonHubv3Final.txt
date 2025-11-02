@@ -24,7 +24,6 @@ local whitelist = {
   "0v93",
 "Hatred_a3",
 "Fu231",
-     "DEMENT3DX",
 "shadowformerks",
     "Iowtoya", 
 
