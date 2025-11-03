@@ -18,6 +18,7 @@ local whitelist = {
     "1haidan",
   "rip_zoro12744",
 "ggghytrv_4",
+"DEMENT3DX",
   "Mt3gb",
   "ahmedali0307",
   "Ahmed_Not9",
