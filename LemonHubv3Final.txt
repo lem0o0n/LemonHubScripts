@@ -19,18 +19,13 @@ local whitelist = {
   "rip_zoro12744",
 "ggghytrv_4",
 "DEMENT3DX",
-  "Mt3gb",
-  "ahmedali0307",
-  "Ahmed_Not9",
   "0v93",
 "Hatred_a3",
 "Fu231",
 "shadowformerks",
     "Iowtoya", 
 "e3ey",
-    "iowtoya", 
-
-    "m85m", 
+    "iowtoya",
 
     "rektifn", 
 
