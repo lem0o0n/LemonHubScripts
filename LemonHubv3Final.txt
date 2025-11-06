@@ -1272,201 +1272,155 @@ end)
 
 
 local Players = game:GetService("Players")
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
 local player = Players.LocalPlayer
 
 local screenGui = Instance.new("ScreenGui")
-
 screenGui.Name = "CharMeGUI"
-
 screenGui.ResetOnSpawn = false
-
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local textBox = Instance.new("TextBox")
-
 textBox.Name = "CommandBox"
-
 textBox.Parent = screenGui
-
 textBox.Size = UDim2.new(0, 180, 0, 35)
-
 textBox.Position = UDim2.new(0, 20, 0, 40)
-
 textBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-
 textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-
 textBox.PlaceholderText = "سكن"
-
 textBox.Text = ""
-
 textBox.Font = Enum.Font.SourceSansBold
-
 textBox.TextSize = 20
-
 textBox.ClearTextOnFocus = false
-
 textBox.BorderSizePixel = 0
-
 textBox.BackgroundTransparency = 0.2
-
 Instance.new("UICorner", textBox).CornerRadius = UDim.new(0, 10)
 
 local effectsButton = Instance.new("TextButton")
-
 effectsButton.Name = "EffectsButton"
-
 effectsButton.Parent = screenGui
-
 effectsButton.Size = UDim2.new(0, 180, 0, 35)
-
 effectsButton.Position = UDim2.new(0, 20, 0, 80)
-
 effectsButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-
 effectsButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-
 effectsButton.Text = "Effects"
-
 effectsButton.Font = Enum.Font.SourceSansBold
-
 effectsButton.TextSize = 20
-
 Instance.new("UICorner", effectsButton).CornerRadius = UDim.new(0, 10)
 
 local uncharButton = Instance.new("TextButton")
-
 uncharButton.Name = "UncharButton"
-
 uncharButton.Parent = screenGui
-
 uncharButton.Size = UDim2.new(0, 180, 0, 35)
-
 uncharButton.Position = UDim2.new(0, 20, 0, 120)
-
 uncharButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-
 uncharButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-
 uncharButton.Text = "Unchar"
-
 uncharButton.Font = Enum.Font.SourceSansBold
-
 uncharButton.TextSize = 20
-
 Instance.new("UICorner", uncharButton).CornerRadius = UDim.new(0, 10)
 
+local hideNameButton = Instance.new("TextButton")
+hideNameButton.Name = "HideNameButton"
+hideNameButton.Parent = screenGui
+hideNameButton.Size = UDim2.new(0, 180, 0, 35)
+hideNameButton.Position = UDim2.new(0, 20, 0, 160)
+hideNameButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+hideNameButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+hideNameButton.Text = "أخفاء الاسم"
+hideNameButton.Font = Enum.Font.SourceSansBold
+hideNameButton.TextSize = 20
+Instance.new("UICorner", hideNameButton).CornerRadius = UDim.new(0, 10)
+
+local annoyButton = Instance.new("TextButton")
+annoyButton.Name = "AnnoyButton"
+annoyButton.Parent = screenGui
+annoyButton.Size = UDim2.new(0, 180, 0, 35)
+annoyButton.Position = UDim2.new(0, 20, 0, 200)
+annoyButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+annoyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+annoyButton.Text = "ازعاج"
+annoyButton.Font = Enum.Font.SourceSansBold
+annoyButton.TextSize = 20
+Instance.new("UICorner", annoyButton).CornerRadius = UDim.new(0, 10)
+
 local toggleGui = Instance.new("ScreenGui")
-
 toggleGui.Name = "CharMeToggleGUI"
-
 toggleGui.ResetOnSpawn = false
-
 toggleGui.Parent = player:WaitForChild("PlayerGui")
 
 local toggleButton = Instance.new("TextButton")
-
 toggleButton.Name = "ToggleButton"
-
 toggleButton.Parent = toggleGui
-
 toggleButton.Size = UDim2.new(0, 35, 0, 35)
-
 toggleButton.Position = UDim2.new(0, 20, 0, 20)
-
 toggleButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-
 toggleButton.Text = "-"
-
 toggleButton.TextScaled = true
-
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-
 toggleButton.Font = Enum.Font.SourceSansBold
-
 toggleButton.AutoButtonColor = true
-
 toggleButton.Active = true
-
 toggleButton.Draggable = true
-
 Instance.new("UICorner", toggleButton).CornerRadius = UDim.new(0, 10)
 
 local guiVisible = true
-
 toggleButton.MouseButton1Click:Connect(function()
-
-	guiVisible = not guiVisible	screenGui.Enabled = guiVisible
-
+	guiVisible = not guiVisible
+	screenGui.Enabled = guiVisible
 end)
 
 textBox.FocusLost:Connect(function(enterPressed)
-
 	if enterPressed then
-
 		local typedText = textBox.Text
-
 		if typedText ~= "" then
-
-			local args = {
-
-				[1] = ";char me " .. typedText
-
-			}
-
+			local args = { [1] = ";char me " .. typedText }
 			ReplicatedStorage:WaitForChild("HDAdminHDClient").Signals.RequestCommandSilent:InvokeServer(unpack(args))
-
 		end
-
 	end
-
 end)
 
 effectsButton.MouseButton1Click:Connect(function()
-
 	local args = { [1] = ";hat me 215718515" }
-
 	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
-
 	wait(0.8)
-
 	args = { [1] = ";hat me 173624602" }
-
 	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
-
 	wait(1)
-
 	args = { [1] = ";hat me 183468963" }
-
 	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
-
 	wait(0.9)
-
 	args = { [1] = ";hat me 192557913" }
-
 	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
-
 	wait(1)
-
 	args = { [1] = ";hat me 128217885" }
-
 	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
-
 	wait(0.8)
-
 	args = { [1] = ";hat me 132809431" }
-
 	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
-
 end)
 
 uncharButton.MouseButton1Click:Connect(function()
-
 	local args = { [1] = ";unchar" }
-
 	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+end)
 
+hideNameButton.MouseButton1Click:Connect(function()
+	local args = { [1] = ";invis" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+	wait(1)
+	args = { [1] = ";neon" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+	wait(0.9)
+	args = { [1] = ";unneon" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+end)
+
+annoyButton.MouseButton1Click:Connect(function()
+	wait(0.2)
+	local args = { [1] = ";hat me 305888394" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+	wait(1)
+	args = { [1] = ";hat me 33070696" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
 end)
