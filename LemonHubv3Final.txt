@@ -592,7 +592,7 @@ local screenGui = Instance.new("ScreenGui")
 
 screenGui.Name = "TextGui"
 
-screenGui.ResetOnSpawn = false -- مهم حتى لا يختفي عند الموت
+screenGui.ResetOnSpawn = false
 
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
@@ -600,7 +600,7 @@ screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local textBox = Instance.new("TextBox")
 
-textBox.Name = "TextBox" -- ✅ تغيير الاسم
+textBox.Name = "TextBox" 
 
 textBox.Size = UDim2.new(0, 200, 0, 30)
 
@@ -804,6 +804,8 @@ smallButton.MouseButton1Click:Connect(toggleGui)
 
 
   -- AUTO HANDCUFF GUIIUUUUU⚠️⚠️
+  
+  
 local Players = game:GetService("Players")
 local RS = game:GetService("ReplicatedStorage")
 local WS = game:GetService("Workspace")
@@ -1079,7 +1081,120 @@ local function doAntiBangTeleport()
         TP_Cooldown = false
         return
     end
-        AutoVoidBtn.Text = "اوتو فويد: " .. (AutoVoid and "تشغيل" or "إيقاف")
+    local old = root.CFrame
+    
+    root.CFrame = old * CFrame.new(0, -999, 0)
+    task.wait(0.7)
+    if root and root.Parent then
+        root.CFrame = old
+    end
+    task.delay(1.3, function()
+        TP_Cooldown = false
+    end)
+    TP_Lock = false
+end
+
+local TouchedConn = nil
+
+local function connectAntiBangTouch()
+    if TouchedConn then TouchedConn:Disconnect() TouchedConn = nil end
+    local myRoot = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return end
+    TouchedConn = myRoot.Touched:Connect(function(hit)
+        if not AntiBang then return end
+        if TP_Lock or TP_Cooldown then return end
+        local char = hit:FindFirstAncestorWhichIsA("Model")
+        if not char then return end
+        local p = Players:GetPlayerFromCharacter(char)
+        if p and p ~= LP then
+            doAntiBangTeleport()
+        end
+    end)
+end
+
+local function connectAntiBangProximityLoop()
+    task.spawn(function()
+        while true do
+            task.wait(0.12)
+            if AntiBang and not TP_Lock and not TP_Cooldown then
+                local myRoot = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+                if myRoot then
+                    for _, plr in ipairs(Players:GetPlayers()) do
+                        if plr ~= LP and plr.Character then
+                            local otherRoot = plr.Character:FindFirstChild("HumanoidRootPart")
+                            if otherRoot then
+                                if (myRoot.Position - otherRoot.Position).Magnitude <= 2.2 then
+                                    doAntiBangTeleport()
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+Players.PlayerAdded:Connect(function(p)
+    if SavedTargetName and p.Name:lower() == SavedTargetName:lower() then
+        setTarget(p)
+        Box.Text = p.Name
+        if SavedAuto then
+            Auto = true
+            AutoBtn.Text = "سحب تلقائي: تشغيل"
+            if p.Character then task.delay(0.2, function() onChar(p.Character) end) end
+        end
+        if SavedKill then
+            KillLoop = true
+            KillBtn.Text = "قتل تلقائي: تشغيل"
+            startKillLoop()
+        end
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(p)
+    if p == Target then
+        Target = nil
+        if CharConn then CharConn:Disconnect() CharConn = nil end
+        if HealthConn then HealthConn:Disconnect() HealthConn = nil end
+    end
+end)
+
+Box.FocusLost:Connect(function()
+    local found = findPlayer(Box.Text)
+    if found then
+        setTarget(found)
+        SavedTargetName = found.Name
+    else
+        SavedTargetName = (Box.Text ~= "" and Box.Text) or nil
+        Target = nil
+    end
+end)
+
+AutoBtn.MouseButton1Click:Connect(function()
+    Auto = not Auto
+    SavedAuto = Auto
+    AutoBtn.Text = "سحب تلقائي: " .. (Auto and "تشغيل" or "إيقاف")
+    if Auto and Target and Target.Character then
+        task.delay(0.1, function() onChar(Target.Character) end)
+    end
+end)
+
+KillBtn.MouseButton1Click:Connect(function()
+    KillLoop = not KillLoop
+    SavedKill = KillLoop
+    KillBtn.Text = "قتل تلقائي: " .. (KillLoop and "تشغيل" or "إيقاف")
+    if KillLoop then
+        startKillLoop()
+    else
+        if KillCharConn then KillCharConn:Disconnect() KillCharConn = nil end
+    end
+end)
+
+AutoVoidBtn.MouseButton1Click:Connect(function()
+    AutoVoid = not AutoVoid
+    AutoVoidBtn.Text = "اوتو فويد: " .. (AutoVoid and "تشغيل" or "إيقاف")
     if AutoVoid then
         startAutoVoidLoop()
     else
