@@ -1,0 +1,56 @@
+Workspace.FallenPartsDestroyHeight = 0 / 0
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local TARGET_CF = CFrame.new(
+	2972.62646, -10486.9229, 4168.9209,
+	-0.969628394, 0.0231916998, 0.243480831,
+	-3.718303e-09, 0.995494306, -0.0948214605,
+	-0.244582847, -0.0919415876, -0.965259552
+)
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "VoidGui"
+gui.ResetOnSpawn = false -- IMPORTANT (keeps GUI after reset)
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local btn = Instance.new("TextButton")
+btn.Size = UDim2.fromOffset(80, 30)
+btn.Position = UDim2.fromScale(0.02, 0.5)
+btn.Text = "Void"
+btn.BackgroundColor3 = Color3.new(0,0,0)
+btn.TextColor3 = Color3.new(1,1,1)
+btn.Parent = gui
+
+local floor
+local originalCF
+local toggled = false
+
+local function getHRP()
+	local char = player.Character or player.CharacterAdded:Wait()
+	return char:WaitForChild("HumanoidRootPart")
+end
+
+btn.MouseButton1Click:Connect(function()
+	local hrp = getHRP()
+
+	if not floor then
+		floor = Instance.new("Part")
+		floor.Size = Vector3.new(20, 1, 20)
+		floor.Anchored = true
+		floor.CFrame = TARGET_CF
+		floor.Parent = workspace
+	end
+
+	if not toggled then
+		originalCF = hrp.CFrame
+		hrp.CFrame = TARGET_CF * CFrame.new(0, 3, 0)
+	else
+		if originalCF then
+			hrp.CFrame = originalCF
+		end
+	end
+
+	toggled = not toggled
+end)
