@@ -1,3 +1,10 @@
+wait(0.2)
+game.StarterGui:SetCore("SendNotification", {
+Title = "هيثم فحل"; 
+Text = "مخصص للفحل هيثم"; 
+Duration = 5;
+})
+
 Workspace.FallenPartsDestroyHeight = 0 / 0
 
 local Players = game:GetService("Players")
