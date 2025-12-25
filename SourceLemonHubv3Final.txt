@@ -1,0 +1,1672 @@
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+
+if game.PlaceId ~= 17080219162 then
+
+    player:Kick("ذا مو ماب قيم سكني | LemoHub")
+
+    return 
+
+end
+
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+
+local whitelist = {    
+    "1haidan",
+    "Sinwwlsk",
+    "1ly1f7",
+"ggghytrv_4",
+"DEMENT3DX",
+"ashura_warth1",
+"wedsssdSMA",
+  "0v93",
+  "The_Abyss11watcher",
+"Hatred_a3",
+"Fu231",
+"shadowformerks",
+    "Iowtoya", 
+    "ip6in",
+    "kedo_12337",
+"e3ey",
+    "iowtoya",
+"E3QOO",
+"Mt3gb",
+    "rektifn", 
+"6_3z",
+    "Shadowformerks", 
+"AndDelete_7",
+    "ccpb",
+"hatred_a3",
+}
+
+local function isWhitelisted(username)
+
+    for _, allowed in ipairs(whitelist) do
+
+        if string.lower(username) == string.lower(allowed) then
+
+            return true
+
+        end
+
+    end
+
+    return false
+
+end
+
+if not isWhitelisted(player.Name) then
+
+    player:Kick("حساب غير مدعوم | LemonHub")
+
+    return
+
+end
+
+Workspace.FallenPartsDestroyHeight = 0 / 0
+
+ wait(1)
+
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "LemonHubv3"
+screenGui.ResetOnSpawn = false
+screenGui.Enabled = false  -- Start hidden
+screenGui.Parent = playerGui
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 250, 0, 320)
+mainFrame.Position = UDim2.new(0.5, -125, 0.5, -160)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+mainFrame.BackgroundTransparency = 0.2
+mainFrame.Parent = screenGui
+
+local frameCorner = Instance.new("UICorner")
+frameCorner.CornerRadius = UDim.new(0,15)
+frameCorner.Parent = mainFrame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,35)
+title.BackgroundTransparency = 1
+title.Text = "LemonHub v3"
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.Parent = mainFrame
+
+local usernameBox = Instance.new("TextBox")
+usernameBox.Size = UDim2.new(0.9,0,0,25)
+usernameBox.Position = UDim2.new(0.05,0,0,45)
+usernameBox.BackgroundColor3 = Color3.fromRGB(20,20,20)
+usernameBox.TextColor3 = Color3.fromRGB(255,255,255)
+usernameBox.PlaceholderText = "وش اسمه؟ "
+usernameBox.ClearTextOnFocus = false
+usernameBox.Font = Enum.Font.Gotham
+usernameBox.TextScaled = true
+usernameBox.Parent = mainFrame
+
+local function createButton(name, y)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.9,0,0,25)
+    btn.Position = UDim2.new(0.05,0,0,y)
+    btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.Text = name
+    btn.Font = Enum.Font.GothamBold
+    btn.TextScaled = true
+    btn.Parent = mainFrame
+    
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0,10)
+    btnCorner.Parent = btn
+    
+    return btn
+end
+
+local pullButton = createButton("سحب", 80)
+local killButton = createButton("قتل", 115)
+local foidButton = createButton("فويد", 150)
+local teleportButton = createButton("تنقل", 185)
+local viewButton = createButton("مشاهده", 220)
+local antiAfkButton = createButton("مضاد افك", 255)
+local antiKillButton = createButton("مضاد قتل", 290)
+
+local function enableDragging(frame)
+    local dragging = false
+    local dragInput, dragStart, startPos
+    
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+    
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+end
+
+enableDragging(mainFrame)
+
+local guiVisible = false  -- Start hidden
+
+local function toggleGui()
+    guiVisible = not guiVisible
+    screenGui.Enabled = guiVisible
+end
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.L then
+        toggleGui()
+    end
+end)
+
+local smallGui = Instance.new("ScreenGui")
+smallGui.Name = "LemonHubToggle"
+smallGui.ResetOnSpawn = false
+smallGui.Parent = playerGui
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0,35,0,35)
+toggleButton.Position = UDim2.new(1, -45, 0.5, -250)
+toggleButton.BackgroundColor3 = Color3.fromRGB(40,40,40)
+toggleButton.TextColor3 = Color3.fromRGB(255,255,255)
+toggleButton.Text = "L"
+toggleButton.TextScaled = true
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.Parent = smallGui
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0,10)
+toggleCorner.Parent = toggleButton
+
+enableDragging(toggleButton)
+
+toggleButton.MouseButton1Click:Connect(toggleGui)
+
+local function findTarget()
+    local inputText = string.lower(usernameBox.Text)
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if string.find(string.lower(plr.Name), inputText) or string.find(string.lower(plr.DisplayName), inputText) then
+            return plr
+        end
+    end
+    return nil
+end
+
+local function getTool()
+
+    local backpack = player:WaitForChild("Backpack")
+
+    local tool = backpack:FindFirstChild("Normal")
+
+    if tool then
+
+        tool.Parent = player.Character
+
+        return tool
+
+    end
+
+    return player.Character:FindFirstChild("Normal")
+
+end
+
+local remote = game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("HandcuffRemote")
+
+pullButton.MouseButton1Click:Connect(function()
+
+    local target = findTarget()
+
+    if not target or not target.Character then return end
+
+    local tool = getTool()
+
+    if tool then
+
+        remote:InvokeServer(tool, target.Character)
+
+    end
+
+end)
+
+killButton.MouseButton1Click:Connect(function()
+
+    local target = findTarget()
+
+    if not target or not target.Character then return end
+
+    local tool = getTool()
+
+    if not tool then return end
+
+    local hrp = player.Character:WaitForChild("HumanoidRootPart")
+
+    local originalCFrame = hrp.CFrame
+
+    remote:InvokeServer(tool, target.Character)
+
+    task.wait(0.1)
+
+    hrp.CFrame = CFrame.new(279.303, -915.413, 168.403)
+
+    task.wait(0.3)
+
+    remote:InvokeServer(tool, target.Character)
+
+    task.wait(0.4)
+
+    hrp.CFrame = originalCFrame
+
+end)
+
+foidButton.MouseButton1Click:Connect(function()
+
+    local target = findTarget()
+
+    if not target or not target.Character then return end
+
+    local tool = getTool()
+
+    if not tool then return end
+
+    local hrp = player.Character:WaitForChild("HumanoidRootPart")
+
+    local originalCFrame = hrp.CFrame
+
+    remote:InvokeServer(tool, target.Character)
+
+    task.wait(0.1)
+
+    hrp.CFrame = CFrame.new(-2338071.75, 21599260, -769617.562, -0.887405515, -0.0953957215, 0.451011211, 8.69690764e-10, 0.978354335, 0.206936792, -0.460989654, 0.183636859, -0.868197024)
+
+    task.wait(0.3)
+
+    remote:InvokeServer(tool, target.Character)
+
+    task.wait(0.4)
+
+    hrp.CFrame = originalCFrame
+
+end)
+
+teleportButton.MouseButton1Click:Connect(function()
+
+    local target = findTarget()
+
+    if target and target.Character then
+
+        local hrp = player.Character:WaitForChild("HumanoidRootPart")
+
+        hrp.CFrame = target.Character:WaitForChild("HumanoidRootPart").CFrame
+
+    end
+
+end)
+
+local cameraFollowing = false
+
+local camera = workspace.CurrentCamera
+
+viewButton.MouseButton1Click:Connect(function()
+
+    local target = findTarget()
+
+    if not target or not target.Character then return end
+
+    if not cameraFollowing then
+
+        camera.CameraSubject = target.Character:WaitForChild("Humanoid")
+
+        cameraFollowing = true
+
+    else
+
+        camera.CameraSubject = player.Character:WaitForChild("Humanoid")
+
+        cameraFollowing = false
+
+    end
+
+end)
+
+antiAfkButton.MouseButton1Click:Connect(function()
+
+    local VirtualUser = game:GetService('VirtualUser')
+
+    player.Idled:Connect(function()
+
+        VirtualUser:CaptureController()
+
+        VirtualUser:ClickButton2(Vector2.new())
+
+    end)
+
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+
+        Title = "Hey!",
+
+        Text = "مضاد افك مفعل✅",
+
+        Button1 = "أخفاء",
+
+        Duration = 5
+
+    })
+
+end)
+
+antiKillButton.MouseButton1Click:Connect(function()
+
+    workspace.FallenPartsDestroyHeight = 0/0
+
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+
+        Title = "Hey!",
+
+        Text = "مضاد قتل مفعل✅",
+
+        Button1 = "أخفاء",
+
+        Duration = 5
+
+    })
+
+end)
+
+local fpsGui = Instance.new("ScreenGui")
+
+fpsGui.Name = "FPSDisplay"
+
+fpsGui.ResetOnSpawn = false
+
+fpsGui.Parent = playerGui
+
+local fpsLabel = Instance.new("TextLabel")
+
+fpsLabel.Size = UDim2.new(0,100,0,25)
+
+fpsLabel.Position = UDim2.new(1,-110,0,10)
+
+fpsLabel.BackgroundTransparency = 1
+
+fpsLabel.TextColor3 = Color3.fromRGB(255,255,255)
+
+fpsLabel.TextScaled = true
+
+fpsLabel.Font = Enum.Font.GothamBold
+
+fpsLabel.Text = "FPS: 0"
+
+fpsLabel.Parent = fpsGui
+
+local frameCount = 0
+
+local elapsed = 0
+
+local updateInterval = 2
+
+RunService.RenderStepped:Connect(function(dt)
+
+    frameCount += 1
+
+    elapsed += dt
+
+    if elapsed >= updateInterval then
+
+        fpsLabel.Text = "FPS: "..math.floor(frameCount / elapsed)
+
+        frameCount = 0
+
+        elapsed = 0
+
+    end
+
+end)
+
+local Players = game:GetService("Players")
+
+local StarterGui = game:GetService("StarterGui")
+
+local ADMINS = {W1DRK=true, Kingme9a=true}
+
+local function notify(msg)
+
+	StarterGui:SetCore("SendNotification", {Title="Hey!", Text=msg, Duration=5})end	
+
+local found=false
+
+for _,p in ipairs(Players:GetPlayers()) do
+
+	if ADMINS[p.Name] then found=true end
+
+end
+
+notify(found and "⚠️ادمن موجود في سيرفر⚠️" or "مافي ادمن✅")
+
+Players.PlayerAdded:Connect(function(p)
+
+	if ADMINS[p.Name] then notify("⚠️ادمن دخل السيرفر⚠️") end
+
+end)
+
+local Players = game:GetService("Players")
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+
+local screenGui = Instance.new("ScreenGui")
+
+screenGui.Name = "TextGui"
+
+screenGui.ResetOnSpawn = false
+
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local textBox = Instance.new("TextBox")
+
+textBox.Name = "TextBox" 
+
+textBox.Size = UDim2.new(0, 200, 0, 30)
+
+textBox.Position = UDim2.new(0, 10, 0, 10)
+
+textBox.PlaceholderText = "اكتب هنا..."
+
+textBox.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+
+textBox.BackgroundTransparency = 0.3
+
+textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+textBox.TextXAlignment = Enum.TextXAlignment.Left
+
+textBox.ClearTextOnFocus = true
+
+textBox.Font = Enum.Font.SourceSans
+
+textBox.TextSize = 18
+
+textBox.Parent = screenGui
+
+Instance.new("UICorner", textBox).CornerRadius = UDim.new(0, 6)
+
+textBox.FocusLost:Connect(function(enterPressed)
+
+	if not enterPressed then return end	
+
+	local backpack = player:WaitForChild("Backpack")
+
+	local sign = backpack:FindFirstChild("Sign") or player.Character:FindFirstChild("Sign")
+
+	if sign then
+
+		sign.Parent = player.Character -- تجهيز الأداة
+
+		local args = { sign, textBox.Text }
+
+		ReplicatedStorage.Framework.Network.UpdateSign:FireServer(unpack(args))
+
+	end
+
+end)
+
+-- تنقل الاماكن ⚠️⚠️⚠️
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "TeleportGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 500, 0, 50)
+mainFrame.Position = UDim2.new(0.5, -250, 0.1, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+mainFrame.BackgroundTransparency = 0.2
+mainFrame.Visible = false
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 8)
+corner.Parent = mainFrame
+
+local function enableDragging(frame)
+    local dragging, dragInput, dragStart, startPos
+    local function update(input)
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                   startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+    frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or
+           input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    frame.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or
+           input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+end
+enableDragging(mainFrame)
+
+local function getHRP()
+    local character = player.Character or player.CharacterAdded:Wait()
+    return character:WaitForChild("HumanoidRootPart")
+end
+
+local function createButton(name, positionX, cf)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 90, 1, 0)
+    button.Position = UDim2.new(positionX, 5, 0, 0)
+    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Text = name
+    button.Font = Enum.Font.SourceSansBold
+    button.TextSize = 18
+    button.Parent = mainFrame
+    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 6)
+
+    button.MouseButton1Click:Connect(function()
+        local hrp = getHRP()
+        if hrp then hrp.CFrame = cf end
+    end)
+end
+
+local cframes = {
+    ["بدايه"] = CFrame.new(257.512787, 8.3040123, 110.829781, -0.999462366, 3.58744536e-08, -0.032786157, 3.88868955e-08, 1, -9.12438338e-08, 0.032786157, -9.24697332e-08, -0.999462366),
+    ["فوق 1"] = CFrame.new(243.351089, 163.638504, -90.5451355, -0.999919295, 3.55999341e-09, -0.0127055431, 3.51507135e-09, 1, 3.55796215e-09, 0.0127055431, 3.5130141e-09, -0.999919295),
+    ["لوحه"] = CFrame.new(188.716919, 34.3515091, 61.8591003, -0.834032834, -9.75880088e-09, -0.551714838, -1.67010139e-08, 1, 7.55896501e-09, 0.551714838, 1.55186228e-08, -0.834032834),
+["عشب"] = CFrame.new(334.484833, 4.16418743, 443.84259, -0.965681732, -2.41917975e-09, -0.259728312, 6.2285781e-09, 1, -3.24724105e-08, 0.259728312, -3.29757484e-08, -0.965681732),
+    ["حلبه"] = CFrame.new(261.689514, 8.32484531, 249.839401, 0.0535329506, 2.82497599e-08, 0.998566091, -1.02144867e-07, 1, -2.28143584e-08, -0.998566091, -1.00777079e-07, 0.05353295065)
+}
+
+local posX = 0
+for name, cf in pairs(cframes) do
+    createButton(name, posX, cf)
+    posX += 0.2
+end
+
+local guiVisible = false
+local function toggleGui()
+    guiVisible = not guiVisible
+    mainFrame.Visible = guiVisible
+end
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.K then
+        toggleGui()
+    end
+end)
+
+local smallButtonGui = Instance.new("ScreenGui")
+smallButtonGui.Name = "ToggleButtonGUI"
+smallButtonGui.ResetOnSpawn = false
+smallButtonGui.Parent = player:WaitForChild("PlayerGui")
+
+local smallButton = Instance.new("TextButton")
+smallButton.Size = UDim2.new(0,35,0,35)
+smallButton.Position = UDim2.new(1, -45, 0.5, -200)
+smallButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+smallButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+smallButton.Text = "K"
+smallButton.Font = Enum.Font.SourceSansBold
+smallButton.TextSize = 18
+smallButton.Parent = smallButtonGui
+Instance.new("UICorner", smallButton).CornerRadius = UDim.new(0, 6)
+
+enableDragging(smallButton)
+smallButton.MouseButton1Click:Connect(toggleGui)
+
+  -- AUTO HANDCUFF GUIIUUUUU⚠️⚠️
+local Players = game:GetService("Players")
+local RS = game:GetService("ReplicatedStorage")
+local WS = game:GetService("Workspace")
+local UIS = game:GetService("UserInputService")
+local LP = Players.LocalPlayer
+local PG = LP:WaitForChild("PlayerGui")
+local Remote = RS:FindFirstChild("Framework") and RS.Framework:FindFirstChild("Network") and RS.Framework.Network:FindFirstChild("HandcuffRemote")
+
+local Gui = Instance.new("ScreenGui", PG)
+Gui.Name = "HandcuffGUI"
+Gui.ResetOnSpawn = false
+
+local Frame = Instance.new("Frame", Gui)
+Frame.Size = UDim2.new(0, 200, 0, 240)
+Frame.Position = UDim2.new(0.4, 0, 0.4, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Frame.Active, Frame.Draggable = true, true
+Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 8)
+
+local Title = Instance.new("TextLabel", Frame)
+Title.Size = UDim2.new(1, 0, 0, 25)
+Title.Text = "اوتو كلبشه"
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextScaled = true
+
+local Box = Instance.new("TextBox", Frame)
+Box.Size = UDim2.new(1, -10, 0, 30)
+Box.Position = UDim2.new(0, 5, 0, 30)
+Box.PlaceholderText = "اكتب بداية الاسم"
+Box.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Box.TextColor3 = Color3.new(1, 1, 1)
+Box.ClearTextOnFocus = false
+Instance.new("UICorner", Box).CornerRadius = UDim.new(0, 6)
+
+local AutoBtn = Instance.new("TextButton", Frame)
+AutoBtn.Size = UDim2.new(1, -10, 0, 30)
+AutoBtn.Position = UDim2.new(0, 5, 0, 65)
+AutoBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+AutoBtn.TextColor3 = Color3.new(1, 1, 1)
+AutoBtn.Text = "سحب تلقائي: إيقاف"
+Instance.new("UICorner", AutoBtn).CornerRadius = UDim.new(0, 6)
+
+local KillBtn = Instance.new("TextButton", Frame)
+KillBtn.Size = UDim2.new(1, -10, 0, 30)
+KillBtn.Position = UDim2.new(0, 5, 0, 105)
+KillBtn.BackgroundColor3 = Color3.fromRGB(55, 0, 0)
+KillBtn.TextColor3 = Color3.new(1, 1, 1)
+KillBtn.Text = "قتل تلقائي: إيقاف"
+Instance.new("UICorner", KillBtn).CornerRadius = UDim.new(0, 6)
+
+local AutoVoidBtn = Instance.new("TextButton", Frame)
+AutoVoidBtn.Size = UDim2.new(1, -10, 0, 30)
+AutoVoidBtn.Position = UDim2.new(0, 5, 0, 145)
+AutoVoidBtn.BackgroundColor3 = Color3.fromRGB(0, 55, 55)
+AutoVoidBtn.TextColor3 = Color3.new(1, 1, 1)
+AutoVoidBtn.Text = "اوتو فويد: إيقاف"
+Instance.new("UICorner", AutoVoidBtn).CornerRadius = UDim.new(0, 6)
+
+local ResetBtn = Instance.new("TextButton", Frame)
+ResetBtn.Size = UDim2.new(1, -10, 0, 30)
+ResetBtn.Position = UDim2.new(0, 5, 0, 185)
+ResetBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+ResetBtn.TextColor3 = Color3.new(1, 1, 1)
+ResetBtn.Text = "ريسيت"
+ResetBtn.TextScaled = true
+Instance.new("UICorner", ResetBtn).CornerRadius = UDim.new(0, 6)
+
+local SmallBtnGui = Instance.new("ScreenGui", PG)
+SmallBtnGui.ResetOnSpawn = false
+
+local SmallBtn = Instance.new("TextButton", SmallBtnGui)
+SmallBtn.Size = UDim2.new(0,35,0,35)
+SmallBtn.Position = UDim2.new(1, -45, 0.5, -150)
+SmallBtn.Text = "Z"
+SmallBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+SmallBtn.TextColor3 = Color3.new(1, 1, 1)
+SmallBtn.TextScaled = true
+SmallBtn.Active, SmallBtn.Draggable = true, true
+Instance.new("UICorner", SmallBtn).CornerRadius = UDim.new(0, 6)
+
+local Target, Auto, KillLoop, CharConn, HealthConn
+local GuiVisible = false
+Frame.Visible = GuiVisible
+
+local KillPos = CFrame.new(243.666275,-21015.7148,-15.5977278,0.4223,-0.0439,-0.9053,0,0.9988,-0.0484,0.9064,0.0204,0.4218)
+
+local VoidCFrames = {
+    CFrame.new(-1513270.88, 3358531.25, 3358691.25, 0.95502913, -0.0218669418, 0.295704633, -3.47251583e-09, 0.997276962, 0.07374724, -0.296512038, -0.0704307631, 0.95242852),
+    CFrame.new(-2306025.75, 2672335.75, -4208850.5, 0.644135833, -0.0787183568, -0.760849833, -5.06185982e-10, 0.994690478, -0.10291177, 0.764911115, 0.0662891567, 0.640715778),
+    CFrame.new(44857472, -12000544, -15002638, 0.87811774, 0.00724852504, 0.47838968, -8.08538028e-11, 0.999885201, -0.0151501866, -0.478444606, 0.0133036477, 0.878016949)
+}
+
+local SavedTargetName = nil
+local SavedAuto = false
+local SavedKill = false
+local AutoVoid = false
+local TP_Lock = false
+local TP_Cooldown = false
+
+local VoidCharConn = nil
+local VoidLoopRunning = false
+
+local function startsWith(s,p)
+    if not s or not p then return false end
+    return s:sub(1,#p):lower() == p:lower()
+end
+
+local function findPlayer(part)
+    if not part then return nil end
+    part = part:lower()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if startsWith(p.Name, part) or startsWith(p.DisplayName, part) then
+            return p
+        end
+    end
+    return nil
+end
+
+local function getTool()
+    local bp = LP:FindFirstChild("Backpack")
+    if not bp then return nil end
+    local t = bp:FindFirstChild("Normal")
+    if t and LP.Character then
+        t.Parent = LP.Character
+        return t
+    end
+    return LP.Character and LP.Character:FindFirstChild("Normal")
+end
+
+local function safeInvoke(c)
+    if not Remote then return end
+    pcall(function()
+        Remote:InvokeServer(getTool(), c)
+    end)
+end
+
+local function onChar(c)
+    if HealthConn then HealthConn:Disconnect() HealthConn = nil end
+    local hum = c:WaitForChild("Humanoid")
+    if Auto then
+        if hum.Health >= hum.MaxHealth then
+            safeInvoke(c)
+        else
+            HealthConn = hum.HealthChanged:Connect(function(h)
+                if Auto and h >= hum.MaxHealth then safeInvoke(c) if HealthConn then HealthConn:Disconnect() HealthConn = nil end end
+            end)
+        end
+    end
+end
+
+local function clearSavedTarget()
+    SavedTargetName = nil
+    SavedAuto = false
+    SavedKill = false
+end
+
+local function setTarget(p)
+    if CharConn then CharConn:Disconnect() CharConn = nil end
+    if HealthConn then HealthConn:Disconnect() HealthConn = nil end
+    Target = p
+    if p then
+        SavedTargetName = p.Name
+        CharConn = p.CharacterAdded:Connect(onChar)
+        if p.Character then onChar(p.Character) end
+    end
+end
+
+local function killTarget(char)
+    local root = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+    if root and char then
+        WS.FallenPartsDestroyHeight = 0/0
+        local oldPos = root.CFrame
+        getTool()
+        safeInvoke(char)
+        root.CFrame = KillPos
+        task.wait(0.3)
+        safeInvoke(char)
+        root.CFrame = oldPos
+    end
+end
+
+local KillCharConn = nil
+
+local function startKillLoop()
+    if KillCharConn then KillCharConn:Disconnect() KillCharConn = nil end
+    if not Target then return end
+    if Target.Character then killTarget(Target.Character) end
+    KillCharConn = Target.CharacterAdded:Connect(function(newChar)
+        task.wait(0.5)
+        if KillLoop then
+            local hum = newChar:WaitForChild("Humanoid")
+            if hum.Health >= hum.MaxHealth then
+                killTarget(newChar)
+            else
+                local temp
+                temp = hum.HealthChanged:Connect(function(h)
+                    if KillLoop and h >= hum.MaxHealth then
+                        killTarget(newChar)
+                        if temp then temp:Disconnect() temp = nil end
+                    end
+                end)
+            end
+        end
+    end)
+end
+
+local function startAutoVoidLoop()
+    if VoidLoopRunning then return end
+    VoidLoopRunning = true
+    
+    if VoidCharConn then VoidCharConn:Disconnect() VoidCharConn = nil end
+    
+    if Target and Target.Character then
+        getTool()
+        safeInvoke(Target.Character)
+    end
+    
+    if Target then
+        VoidCharConn = Target.CharacterAdded:Connect(function(newChar)
+            task.wait(0.5)
+            if AutoVoid then
+                local hum = newChar:WaitForChild("Humanoid")
+                if hum.Health >= hum.MaxHealth then
+                    getTool()
+                    safeInvoke(newChar)
+                else
+                    local temp
+                    temp = hum.HealthChanged:Connect(function(h)
+                        if AutoVoid and h >= hum.MaxHealth then
+                            getTool()
+                            safeInvoke(newChar)
+                            if temp then temp:Disconnect() temp = nil end
+                        end
+                    end)
+                end
+            end
+        end)
+    end
+    
+    task.spawn(function()
+        while AutoVoid do
+            local root = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+            if root then
+                local randomIndex = math.random(1, #VoidCFrames)
+                root.CFrame = VoidCFrames[randomIndex]
+            end
+            task.wait()
+        end
+        VoidLoopRunning = false
+    end)
+end
+
+local function stopAutoVoidLoop()
+    AutoVoid = false
+    if VoidCharConn then VoidCharConn:Disconnect() VoidCharConn = nil end
+    VoidLoopRunning = false
+end
+
+local function toggleGui()
+    GuiVisible = not GuiVisible
+    Frame.Visible = GuiVisible
+end
+
+Players.PlayerAdded:Connect(function(p)
+    if SavedTargetName and p.Name:lower() == SavedTargetName:lower() then
+        setTarget(p)
+        Box.Text = p.Name
+        if SavedAuto then
+            Auto = true
+            AutoBtn.Text = "سحب تلقائي: تشغيل"
+            if p.Character then task.delay(0.2, function() onChar(p.Character) end) end
+        end
+        if SavedKill then
+            KillLoop = true
+            KillBtn.Text = "قتل تلقائي: تشغيل"
+            startKillLoop()
+        end
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(p)
+    if p == Target then
+        Target = nil
+        if CharConn then CharConn:Disconnect() CharConn = nil end
+        if HealthConn then HealthConn:Disconnect() HealthConn = nil end
+    end
+end)
+
+Box.FocusLost:Connect(function()
+    local found = findPlayer(Box.Text)
+    if found then
+        setTarget(found)
+        SavedTargetName = found.Name
+    else
+        SavedTargetName = (Box.Text ~= "" and Box.Text) or nil
+        Target = nil
+    end
+end)
+
+AutoBtn.MouseButton1Click:Connect(function()
+    Auto = not Auto
+    SavedAuto = Auto
+    AutoBtn.Text = "سحب تلقائي: " .. (Auto and "تشغيل" or "إيقاف")
+    if Auto and Target and Target.Character then
+        task.delay(0.1, function() onChar(Target.Character) end)
+    end
+end)
+
+KillBtn.MouseButton1Click:Connect(function()
+    KillLoop = not KillLoop
+    SavedKill = KillLoop
+    KillBtn.Text = "قتل تلقائي: " .. (KillLoop and "تشغيل" or "إيقاف")
+    if KillLoop then
+        startKillLoop()
+    else
+        if KillCharConn then KillCharConn:Disconnect() KillCharConn = nil end
+    end
+end)
+
+AutoVoidBtn.MouseButton1Click:Connect(function()
+    AutoVoid = not AutoVoid
+    AutoVoidBtn.Text = "اوتو فويد: " .. (AutoVoid and "تشغيل" or "إيقاف")
+    if AutoVoid then
+        startAutoVoidLoop()
+    else
+        stopAutoVoidLoop()
+    end
+end)
+
+ResetBtn.MouseButton1Click:Connect(function()
+    if LP.Character then
+        local hum = LP.Character:FindFirstChild("Humanoid")
+        local head = LP.Character:FindFirstChild("Head")
+        if hum then
+            hum.Health = 0
+        end
+        if head then
+            head:Destroy()
+        end
+    end
+end)
+
+SmallBtn.MouseButton1Click:Connect(toggleGui)
+
+UIS.InputBegan:Connect(function(input, gp)
+    if not gp and input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.Z then
+        toggleGui()
+    end
+end)
+
+local function createTargetTool()
+    local old = LP.Backpack:FindFirstChild("Target Selector")
+    if old then old:Destroy() end
+    local tool = Instance.new("Tool")
+    tool.Name = "Target Selector"
+    tool.RequiresHandle = false
+    tool.CanBeDropped = false
+    tool.Parent = LP:WaitForChild("Backpack")
+    local mouse = LP:GetMouse()
+    local clickConn
+    tool.Equipped:Connect(function()
+        clickConn = mouse.Button1Down:Connect(function()
+            local part = mouse.Target
+            if not part then return end
+            local char = part:FindFirstAncestorWhichIsA("Model")
+            if not char then return end
+            local plr = Players:GetPlayerFromCharacter(char)
+            if not plr then return end
+            Box.Text = plr.Name
+            setTarget(plr)
+            SavedTargetName = plr.Name
+            SavedAuto = Auto
+            SavedKill = KillLoop
+            if Auto and plr.Character then task.delay(0.1, function() onChar(plr.Character) end) end
+            if KillLoop then task.delay(0.1, startKillLoop) end
+            LP.Character:WaitForChild("Humanoid"):UnequipTools()
+        end)
+    end)
+    tool.Unequipped:Connect(function()
+        if clickConn then clickConn:Disconnect() clickConn = nil end
+    end)
+end
+
+if LP.Character then
+    task.wait(0.5)
+    createTargetTool()
+end
+
+LP.CharacterAdded:Connect(function()
+    task.wait(0.5)
+    createTargetTool()
+end)
+
+wait(0.8)
+-- Char gui Simple
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CharMeGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Enabled = false  -- Added this line to start hidden
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local textBox = Instance.new("TextBox")
+textBox.Name = "CommandBox"
+textBox.Parent = screenGui
+textBox.Size = UDim2.new(0, 180, 0, 35)
+textBox.Position = UDim2.new(0, 20, 0, 40)
+textBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+textBox.PlaceholderText = "سكن"
+textBox.Text = ""
+textBox.Font = Enum.Font.SourceSansBold
+textBox.TextSize = 20
+textBox.ClearTextOnFocus = false
+textBox.BorderSizePixel = 0
+textBox.BackgroundTransparency = 0.2
+Instance.new("UICorner", textBox).CornerRadius = UDim.new(0, 10)
+
+local effectsButton = Instance.new("TextButton")
+effectsButton.Name = "EffectsButton"
+effectsButton.Parent = screenGui
+effectsButton.Size = UDim2.new(0, 180, 0, 35)
+effectsButton.Position = UDim2.new(0, 20, 0, 80)
+effectsButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+effectsButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+effectsButton.Text = "Effects"
+effectsButton.Font = Enum.Font.SourceSansBold
+effectsButton.TextSize = 20
+Instance.new("UICorner", effectsButton).CornerRadius = UDim.new(0, 10)
+
+local uncharButton = Instance.new("TextButton")
+uncharButton.Name = "UncharButton"
+uncharButton.Parent = screenGui
+uncharButton.Size = UDim2.new(0, 180, 0, 35)
+uncharButton.Position = UDim2.new(0, 20, 0, 120)
+uncharButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+uncharButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+uncharButton.Text = "Unchar"
+uncharButton.Font = Enum.Font.SourceSansBold
+uncharButton.TextSize = 20
+Instance.new("UICorner", uncharButton).CornerRadius = UDim.new(0, 10)
+
+local hideNameButton = Instance.new("TextButton")
+hideNameButton.Name = "HideNameButton"
+hideNameButton.Parent = screenGui
+hideNameButton.Size = UDim2.new(0, 180, 0, 35)
+hideNameButton.Position = UDim2.new(0, 20, 0, 160)
+hideNameButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+hideNameButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+hideNameButton.Text = "أخفاء الاسم"
+hideNameButton.Font = Enum.Font.SourceSansBold
+hideNameButton.TextSize = 20
+Instance.new("UICorner", hideNameButton).CornerRadius = UDim.new(0, 10)
+
+local annoyButton = Instance.new("TextButton")
+annoyButton.Name = "AnnoyButton"
+annoyButton.Parent = screenGui
+annoyButton.Size = UDim2.new(0, 180, 0, 35)
+annoyButton.Position = UDim2.new(0, 20, 0, 200)
+annoyButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+annoyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+annoyButton.Text = "ازعاج"
+annoyButton.Font = Enum.Font.SourceSansBold
+annoyButton.TextSize = 20
+Instance.new("UICorner", annoyButton).CornerRadius = UDim.new(0, 10)
+
+local toggleGui = Instance.new("ScreenGui")
+toggleGui.Name = "CharMeToggleGUI"
+toggleGui.ResetOnSpawn = false
+toggleGui.Parent = player:WaitForChild("PlayerGui")
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Parent = toggleGui
+toggleButton.Size = UDim2.new(0,35,0,35)
+toggleButton.Position = UDim2.new(1, -45, 0.5, -100)
+toggleButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+toggleButton.Text = "-"
+toggleButton.TextScaled = true
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.AutoButtonColor = true
+toggleButton.Active = true
+toggleButton.Draggable = true
+Instance.new("UICorner", toggleButton).CornerRadius = UDim.new(0, 10)
+
+local guiVisible = true
+toggleButton.MouseButton1Click:Connect(function()
+	guiVisible = not guiVisible
+	screenGui.Enabled = guiVisible
+end)
+
+textBox.FocusLost:Connect(function(enterPressed)
+	if enterPressed then
+		local typedText = textBox.Text
+		if typedText ~= "" then
+			local args = { [1] = ";char me " .. typedText }
+			ReplicatedStorage:WaitForChild("HDAdminHDClient").Signals.RequestCommandSilent:InvokeServer(unpack(args))
+		end
+	end
+end)
+
+effectsButton.MouseButton1Click:Connect(function()
+	local args = { [1] = ";hat me 215718515" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+	wait(0.8)
+	args = { [1] = ";hat me 173624602" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+	wait(1)
+	args = { [1] = ";hat me 183468963" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+	wait(0.9)
+	args = { [1] = ";hat me 192557913" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+	wait(1)
+	args = { [1] = ";hat me 128217885" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+	wait(0.8)
+	args = { [1] = ";hat me 132809431" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+end)
+
+uncharButton.MouseButton1Click:Connect(function()
+	local args = { [1] = ";unchar" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+end)
+
+hideNameButton.MouseButton1Click:Connect(function()
+	local args = { [1] = ";invis" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+	wait(1)
+	args = { [1] = ";neon" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+	wait(0.9)
+	args = { [1] = ";unneon" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+end)
+
+annoyButton.MouseButton1Click:Connect(function()
+	wait(0.2)
+	local args = { [1] = ";hat me 305888394" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+	wait(1)
+	args = { [1] = ";hat me 33070696" }
+	ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandSilent:InvokeServer(unpack(args))
+end)
+
+wait(1)
+
+--Fe bang Gui⚠️⚠️⚠️
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local TargetBox = Instance.new("TextBox")
+local BangButton = Instance.new("TextButton")
+local FaceBangButton = Instance.new("TextButton")
+local AntiBangButton = Instance.new("TextButton")
+local ToggleButton = Instance.new("TextButton")
+
+ScreenGui.Name = "BangGui"
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
+
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Parent = ScreenGui
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Changed to black
+ToggleButton.BorderSizePixel = 0
+ToggleButton.Position = UDim2.new(0, 20, 0.5, -30)
+ToggleButton.Size = UDim2.new(0, 60, 0, 60)
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.Text = "F"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 24
+ToggleButton.ZIndex = 10 
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(1, 0)
+ToggleCorner.Parent = ToggleButton
+
+local ToggleStroke = Instance.new("UIStroke")
+ToggleStroke.Color = Color3.fromRGB(255, 255, 255)
+ToggleStroke.Thickness = 2
+ToggleStroke.Parent = ToggleButton
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MainFrame.BackgroundTransparency = 0.3
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -100)
+MainFrame.Size = UDim2.new(0, 250, 0, 200)
+MainFrame.Active = true
+MainFrame.Visible = true
+MainFrame.ZIndex = 1 
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 15)
+MainCorner.Parent = MainFrame
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(200, 0, 0)
+MainStroke.Thickness = 2
+MainStroke.Parent = MainFrame
+
+local UIS = game:GetService("UserInputService")
+local dragToggle = nil
+local dragSpeed = 0
+local dragStart = nil
+local startPos = nil
+
+local function updateInput(input)
+    local delta = input.Position - dragStart
+    local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    MainFrame.Position = position
+end
+
+MainFrame.InputBegan:Connect(function(input)
+    if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+        dragToggle = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragToggle = false
+            end
+        end)
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        if dragToggle then
+            updateInput(input)
+        end
+    end
+end)
+
+local guiVisible = true
+
+local function toggleGUI()
+    guiVisible = not guiVisible
+    MainFrame.Visible = guiVisible
+end
+
+ToggleButton.MouseButton1Click:Connect(toggleGUI)
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end -- Don't trigger if game is processing the input
+    
+    if input.KeyCode == Enum.KeyCode.F then
+        toggleGUI()
+    end
+end)
+
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 0, 0, 5)
+Title.Size = UDim2.new(1, 0, 0, 25)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "اوتو بانغ v2"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 26
+
+TargetBox.Name = "TargetBox"
+TargetBox.Parent = MainFrame
+TargetBox.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+TargetBox.BackgroundTransparency = 0.5
+TargetBox.BorderSizePixel = 0
+TargetBox.Position = UDim2.new(0.1, 0, 0, 35)
+TargetBox.Size = UDim2.new(0.8, 0, 0, 30)
+TargetBox.Font = Enum.Font.Gotham
+TargetBox.PlaceholderText = "اكتب اسم المستهدف"
+TargetBox.Text = ""
+TargetBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TargetBox.TextSize = 13
+TargetBox.ClearTextOnFocus = false
+
+BangButton.Name = "BangButton"
+BangButton.Parent = MainFrame
+BangButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+BangButton.BorderSizePixel = 0
+BangButton.Position = UDim2.new(0.1, 0, 0, 75)
+BangButton.Size = UDim2.new(0.8, 0, 0, 30)
+BangButton.Font = Enum.Font.GothamBold
+BangButton.Text = "بانغ عادي"
+BangButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+BangButton.TextSize = 14
+
+FaceBangButton.Name = "FaceBangButton"
+FaceBangButton.Parent = MainFrame
+FaceBangButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+FaceBangButton.BorderSizePixel = 0
+FaceBangButton.Position = UDim2.new(0.1, 0, 0, 112)
+FaceBangButton.Size = UDim2.new(0.8, 0, 0, 30)
+FaceBangButton.Font = Enum.Font.GothamBold
+FaceBangButton.Text = "بانغ وجهه"
+FaceBangButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FaceBangButton.TextSize = 14
+
+AntiBangButton.Name = "AntiBangButton"
+AntiBangButton.Parent = MainFrame
+AntiBangButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+AntiBangButton.BorderSizePixel = 0
+AntiBangButton.Position = UDim2.new(0.1, 0, 0, 149)
+AntiBangButton.Size = UDim2.new(0.8, 0, 0, 30)
+AntiBangButton.Font = Enum.Font.GothamBold
+AntiBangButton.Text = "مضاد البانغ"
+AntiBangButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AntiBangButton.TextSize = 14
+
+local BangActive = false
+local FaceBangActive = false
+local AntiBangActive = false
+local currentTargetPlayer = nil
+local plrs = game:GetService("Players")
+local plr = plrs.LocalPlayer
+
+local function Player(name)
+    if not name or name == "" then return nil end
+    name = string.lower(name)
+    for _, player in pairs(plrs:GetPlayers()) do
+        if string.lower(player.Name):sub(1, #name) == name or string.lower(player.DisplayName):sub(1, #name) == name then
+            return player
+        end
+    end
+    return nil
+end
+
+local function waitForCharacter(player)
+    if not player then return nil end
+    local character = player.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        return character
+    end
+    return player.CharacterAdded:Wait()
+end
+
+local function TEL(cframe)
+    local char = plr.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        char.HumanoidRootPart.CFrame = cframe
+    end
+end
+
+function CustomeTeleport(POS)
+    local Target = Player(getgenv().SelectTarget)
+    if not Target then return false end
+    
+    local targetChar = Target.Character
+    if not targetChar or not targetChar:FindFirstChild("HumanoidRootPart") then
+        targetChar = waitForCharacter(Target)
+    end
+    
+    local myChar = plr.Character
+    if not myChar then return false end
+    
+    local myHRP = myChar:FindFirstChild("HumanoidRootPart")
+    local targetHRP = targetChar and targetChar:FindFirstChild("HumanoidRootPart")
+    
+    if myHRP and targetHRP then
+        myHRP.Velocity = Vector3.new(0, 0, 0)
+        myHRP.CFrame = targetHRP.CFrame * POS
+        return true
+    end
+    return false
+end
+
+function FaceBang(POS)
+    local Target = Player(getgenv().SelectTarget)
+    if not Target then return false end
+    
+    local targetChar = Target.Character
+    if not targetChar or not targetChar:FindFirstChild("Head") then
+        targetChar = waitForCharacter(Target)
+    end
+    
+    local myChar = plr.Character
+    if not myChar then return false end
+    
+    local TH = targetChar and targetChar:FindFirstChild("Head")
+    local myHRP = myChar:FindFirstChild("HumanoidRootPart")
+    
+    if TH and myHRP then
+        myHRP.Velocity = Vector3.new(0, 0, 0)
+        local faceDirection = TH.CFrame.LookVector
+        local newCFrame = TH.CFrame + (faceDirection * POS.Z) + Vector3.new(0, 1, 0)
+        myHRP.CFrame = newCFrame * CFrame.Angles(0, math.rad(180), 0)
+        return true
+    end
+    return false
+end
+
+local function monitorTarget()
+    if currentTargetPlayer then
+        currentTargetPlayer.CharacterAdded:Connect(function(character)
+            task.wait(0.5)
+        end)
+    end
+end
+
+BangButton.MouseButton1Click:Connect(function()
+    if BangActive then
+        BangActive = false
+        getgenv().Bang = false
+        BangButton.Text = "بانغ"
+        currentTargetPlayer = nil
+        local char = plr.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.PlatformStand = false
+        end
+    else
+        local targetName = TargetBox.Text
+        if targetName == "" then return end
+        
+        getgenv().SelectTarget = targetName
+        local target = Player(targetName)
+        if not target then return end
+        
+        currentTargetPlayer = target
+        monitorTarget()
+        
+        BangActive = true
+        getgenv().Bang = true
+        BangButton.Text = "بانغ : مفعل"
+        
+        local char = plr.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.PlatformStand = true
+        end
+        
+        task.spawn(function()
+            while BangActive and getgenv().Bang do
+                local char = plr.Character
+                if char and char:FindFirstChild("Humanoid") then
+                    char.Humanoid.Sit = false
+                    CustomeTeleport(CFrame.new(0, 0, 1))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    CustomeTeleport(CFrame.new(0, 0, 1.5))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    CustomeTeleport(CFrame.new(0, 0, 2))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    CustomeTeleport(CFrame.new(0, 0, 2.5))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    CustomeTeleport(CFrame.new(0, 0, 3))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    CustomeTeleport(CFrame.new(0, 0, 3.5))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    CustomeTeleport(CFrame.new(0, 0, 4))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    CustomeTeleport(CFrame.new(0, 0, 3.5))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    CustomeTeleport(CFrame.new(0, 0, 3))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    CustomeTeleport(CFrame.new(0, 0, 2.5))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    CustomeTeleport(CFrame.new(0, 0, 2))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    CustomeTeleport(CFrame.new(0, 0, 1.5))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    CustomeTeleport(CFrame.new(0, 0, 1))
+                    task.wait()
+                else
+                    task.wait(1)
+                end
+            end
+        end)
+    end
+end)
+
+FaceBangButton.MouseButton1Click:Connect(function()
+    if FaceBangActive then
+        FaceBangActive = false
+        getgenv().FaceBang = false
+        FaceBangButton.Text = "بانغ وجهه"
+        currentTargetPlayer = nil
+        local char = plr.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.PlatformStand = false
+        end
+    else
+        local targetName = TargetBox.Text
+        if targetName == "" then return end
+        
+        getgenv().SelectTarget = targetName
+        local target = Player(targetName)
+        if not target then return end
+        
+        currentTargetPlayer = target
+        monitorTarget()
+        
+        FaceBangActive = true
+        getgenv().FaceBang = true
+        FaceBangButton.Text = "بانغ وجهه : مفعل"
+        
+        local char = plr.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.PlatformStand = true
+        end
+        
+        task.spawn(function()
+            while FaceBangActive and getgenv().FaceBang do
+                local char = plr.Character
+                if char and char:FindFirstChild("Humanoid") then
+                    char.Humanoid.Sit = false
+                    FaceBang(CFrame.new(0, 0, 1))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    FaceBang(CFrame.new(0, 0, 1.5))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    FaceBang(CFrame.new(0, 0, 2))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    FaceBang(CFrame.new(0, 0, 2.5))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    FaceBang(CFrame.new(0, 0, 3))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    FaceBang(CFrame.new(0, 0, 3.5))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    FaceBang(CFrame.new(0, 0, 4))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    FaceBang(CFrame.new(0, 0, 3.5))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    FaceBang(CFrame.new(0, 0, 3))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    FaceBang(CFrame.new(0, 0, 2.5))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    FaceBang(CFrame.new(0, 0, 2))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    FaceBang(CFrame.new(0, 0, 1.5))
+                    task.wait()
+                    char.Humanoid.Sit = false
+                    FaceBang(CFrame.new(0, 0, 1))
+                    task.wait()
+                else
+                    task.wait(1)
+                end
+            end
+        end)
+    end
+end)
+
+AntiBangButton.MouseButton1Click:Connect(function()
+    if AntiBangActive then
+        AntiBangActive = false
+        getgenv().AntiBang = false
+        AntiBangButton.Text = "مضاد بانغ"
+    else
+        AntiBangActive = true
+        getgenv().AntiBang = true
+        AntiBangButton.Text = "مضاد بانغ : مفعل"
+        
+        workspace.FallenPartsDestroyHeight = 0/0
+        
+        task.spawn(function()
+            while getgenv().AntiBang do
+                task.wait(0.1)
+                for _, v in pairs(plrs:GetPlayers()) do
+                    if v ~= plr and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and
+                    plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                        if (plr.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude <= 2 then
+                            local pos = plr.Character.HumanoidRootPart.CFrame
+                            TEL(CFrame.new(10, -1000, 10))
+                            task.wait()
+                            TEL(pos)
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
