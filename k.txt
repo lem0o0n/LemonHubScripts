@@ -1,10 +1,3 @@
---[[
-╔══════════════════════════════════════╗
-║     MoonSec Obfuscator v4.0         ║
-║      Protected by MoonSec           ║
-║     By Hendar Development           ║
-╚══════════════════════════════════════╝
-]]
 local oSyTtJWQp_mgF0R, aLQcFaJ66l09mCw, hTcOiP0n8qV54ia, q7rFfHvV3bg4Xge, BbxQ4ikHqXxX3lg, KU6J4rjOdD3hUSF, zge14qNismO5ae3, ntRAHeoSzf9H18q, DSnbFWYMnI_1lPt, TJu445Zb3_bVF6J
 oSyTtJWQp_mgF0R="MoonSec"
 aLQcFaJ66l09mCw="Protection"
