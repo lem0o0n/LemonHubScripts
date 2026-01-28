@@ -1,0 +1,1406 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
+local Workspace = game:GetService("Workspace")
+local TeleportService = game:GetService("TeleportService")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- انتظار تحميل اللاعب
+if not LocalPlayer then
+    LocalPlayer = Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
+end
+
+-- ================================================================
+-- 🌟 نظام مضاد "GAMEPLAY PAUSED" المحسن 🌟
+-- ================================================================
+local function DisableGameplayPaused()
+    if Workspace:FindFirstChild("StreamingIntegrityMode") then
+        local success, err = pcall(function()
+            Workspace.StreamingIntegrityMode = Enum.StreamingIntegrityMode.Disabled
+        end)
+        
+        if success then
+            print("✅ تم تفعيل مضاد 'Gameplay Paused' بنجاح!")
+        else
+            warn("❌ فشل تفعيل مضاد 'Gameplay Paused'. الخطأ:", err)
+        end
+    else
+        print("💡 ملاحظة: خاصية StreamingIntegrityMode غير متوفرة في هذا الخادم/الإصدار.")
+    end
+end
+
+DisableGameplayPaused()
+
+-- ================================================================
+-- 🚀 نظام AUTO GAMEPLAY PAUSED المتقدم 🚀
+-- ================================================================
+local OriginalPosition = nil
+local IsTeleported = false
+local SpawnLocation = nil
+local AutoGamePaused = false
+local AutoGamePausedConnection = nil
+
+-- إحداثيات بعيدة جداً للانتقال
+local FarPositions = {
+    CFrame.new(50000, 2000, 50000),
+    CFrame.new(-50000, 2500, -50000),  
+    CFrame.new(25000, 3000, -25000),
+    CFrame.new(-25000, 3500, 25000),
+    CFrame.new(75000, 4000, 0),
+    CFrame.new(0, 4500, 75000),
+    CFrame.new(100000, 5000, 100000),
+    CFrame.new(-100000, 5500, -100000)
+}
+
+-- حفظ موقع السباون الأساسي
+local function saveSpawnLocation()
+    local character = LocalPlayer.Character
+    if character then
+        local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+        if humanoidRootPart then
+            SpawnLocation = humanoidRootPart.CFrame
+        end
+    end
+end
+
+-- البحث عن موقع السباون في الخريطة
+local function findSpawnLocation()
+    local spawns = Workspace:FindFirstChild("SpawnLocation") 
+    or Workspace:FindFirstChild("Spawn")
+    or Workspace:FindFirstChild("SpawnPos")
+    
+    if spawns then
+        if spawns:IsA("Part") then
+            SpawnLocation = spawns.CFrame
+        elseif spawns:IsA("Model") then
+            local primaryPart = spawns.PrimaryPart
+            if primaryPart then
+                SpawnLocation = primaryPart.CFrame
+            end
+        end
+    end
+    
+    if not SpawnLocation then
+        SpawnLocation = CFrame.new(0, 50, 0)
+    end
+end
+
+-- وظيفة الانتقال إلى مكان بعيد جداً
+local function teleportToFarLocation()
+    local character = LocalPlayer.Character
+    if not character then return end
+    
+    local humanoid = character:FindFirstChild("Humanoid")
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    
+    if not humanoid or not rootPart then return end
+    
+    -- حفظ الموقع الأصلي الحالي
+    OriginalPosition = rootPart.CFrame
+    
+    -- اختيار موقع بعيد جداً عشوائي
+    local randomIndex = math.random(1, #FarPositions)
+    local targetPosition = FarPositions[randomIndex]
+    
+    -- طريقة الانتقال الآمن
+    local function safeTeleport()
+        pcall(function()
+            local bodyVelocity = rootPart:FindFirstChild("BodyVelocity")
+            if bodyVelocity then bodyVelocity:Destroy() end
+            
+            local bodyForce = rootPart:FindFirstChild("BodyForce")
+            if bodyForce then bodyForce:Destroy() end
+        end)
+        
+        humanoid.PlatformStand = true
+        rootPart.Anchored = true
+        rootPart.CFrame = targetPosition
+        
+        task.wait(0.2)
+        if character and rootPart then
+            rootPart.Anchored = false
+            humanoid.PlatformStand = false
+        end
+        
+        task.wait(0.3)
+        if character and humanoid and humanoid.Health <= 0 then
+            task.wait(0.5)
+            if character and rootPart then
+                rootPart.CFrame = SpawnLocation
+                IsTeleported = false
+            end
+        else
+            IsTeleported = true
+        end
+    end
+    
+    pcall(safeTeleport)
+end
+
+-- وظيفة العودة إلى السباون الأساسي
+local function returnToSpawn()
+    if not SpawnLocation then return end
+    
+    local character = LocalPlayer.Character
+    if not character then return end
+    
+    local humanoid = character:FindFirstChild("Humanoid")
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    
+    if not humanoid or not rootPart then return end
+    
+    -- طريقة العودة الآمنة
+    local function safeReturn()
+        pcall(function()
+            local bodyVelocity = rootPart:FindFirstChild("BodyVelocity")
+            if bodyVelocity then bodyVelocity:Destroy() end
+            
+            local bodyForce = rootPart:FindFirstChild("BodyForce")
+            if bodyForce then bodyForce:Destroy() end
+        end)
+        
+        humanoid.PlatformStand = true
+        rootPart.Anchored = true
+        rootPart.CFrame = SpawnLocation
+        
+        task.wait(0.2)
+        if character and rootPart then
+            rootPart.Anchored = false
+            humanoid.PlatformStand = false
+        end
+        
+        IsTeleported = false
+    end
+    
+    pcall(safeReturn)
+end
+
+-- نظام AUTO GAME PUSED التلقائي
+local function startAutoGamePaused()
+    if AutoGamePausedConnection then
+        AutoGamePausedConnection:Disconnect()
+        AutoGamePausedConnection = nil
+    end
+    
+    AutoGamePausedConnection = RunService.Heartbeat:Connect(function()
+        if AutoGamePaused and LocalPlayer.Character then
+            local rootPart = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if rootPart then
+                local randomIndex = math.random(1, #FarPositions)
+                local targetPosition = FarPositions[randomIndex]
+                rootPart.CFrame = targetPosition
+                task.wait(0.5)
+            end
+        end
+    end)
+end
+
+local function stopAutoGamePaused()
+    if AutoGamePausedConnection then
+        AutoGamePausedConnection:Disconnect()
+        AutoGamePausedConnection = nil
+    end
+    AutoGamePaused = false
+    returnToSpawn()
+end
+
+-- البحث عن السباون عند بدء السكربت
+findSpawnLocation()
+
+-- حفظ موقع السباون عند ولادة الشخصية
+LocalPlayer.CharacterAdded:Connect(function(character)
+    task.wait(1)
+    saveSpawnLocation()
+end)
+
+if LocalPlayer.Character then
+    task.wait(0.5)
+    saveSpawnLocation()
+end
+
+-- ================================================================
+-- 🎯 نظام تخريب اللاعبين 🎯
+-- ================================================================
+local AutoHandcuffList = {}
+local handcuffDebounce = {}
+local stopHandcuffing = false
+
+-- ================================================================
+-- 🔪 نظام القتل التلقائي/الفردي 🔪
+-- ================================================================
+local KillLoop = false
+local Target = nil
+local SavedTargetName = nil
+local SavedKill = false
+local KillPos = CFrame.new(243.666275,-21015.7148,-15.5977278,0.4223,-0.0439,-0.9053,0,0.9988,-0.0484,0.9064,0.0204,0.4218)
+local KillCharConn = nil
+
+-- ================================================================
+-- ⚡ نظام مضاد البانغ ⚡
+-- ================================================================
+local AntiBang = false
+local TP_Lock = false
+local TP_Cooldown = false
+local TouchedConn = nil
+local ProximityLoopConn = nil
+
+local function doAntiBangTeleport()
+    if TP_Lock or TP_Cooldown then return end
+    TP_Lock = true
+    TP_Cooldown = true
+    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not root then
+        TP_Lock = false
+        TP_Cooldown = false
+        return
+    end
+    local old = root.CFrame
+    root.CFrame = old * CFrame.new(0, -700, 0)
+    task.wait(0.7)
+    if root and root.Parent then
+        root.CFrame = old
+    end
+    task.delay(1.3, function()
+        TP_Cooldown = false
+    end)
+    TP_Lock = false
+end
+
+local function connectAntiBangTouch()
+    if TouchedConn then TouchedConn:Disconnect() TouchedConn = nil end
+    local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not myRoot then return end
+    TouchedConn = myRoot.Touched:Connect(function(hit)
+        if not AntiBang then return end
+        if TP_Lock or TP_Cooldown then return end
+        local char = hit:FindFirstAncestorWhichIsA("Model")
+        if not char then return end
+        local p = Players:GetPlayerFromCharacter(char)
+        if p and p ~= LocalPlayer then
+            doAntiBangTeleport()
+        end
+    end)
+end
+
+local function connectAntiBangProximityLoop()
+    if ProximityLoopConn and ProximityLoopConn.Status == "running" then return end
+    ProximityLoopConn = task.spawn(function()
+        while true do
+            task.wait(0.12)
+            if AntiBang and not TP_Lock and not TP_Cooldown then
+                local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if myRoot then
+                    for _, plr in ipairs(Players:GetPlayers()) do
+                        if plr ~= LocalPlayer and plr.Character then
+                            local otherRoot = plr.Character:FindFirstChild("HumanoidRootPart")
+                            if otherRoot then
+                                if (myRoot.Position - otherRoot.Position).Magnitude <= 2.2 then
+                                    doAntiBangTeleport()
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+local function disconnectAntiBang()
+    if TouchedConn then TouchedConn:Disconnect() TouchedConn = nil end
+    if ProximityLoopConn and ProximityLoopConn.Status == "running" then
+        task.cancel(ProximityLoopConn)
+        ProximityLoopConn = nil
+    end
+end
+
+-- ================================================================
+-- 🛠️ الوظائف الأساسية 🛠️
+-- ================================================================
+local function getTool()
+    local Remote = ReplicatedStorage:FindFirstChild("Framework") and ReplicatedStorage.Framework:FindFirstChild("Network") and ReplicatedStorage.Framework.Network:FindFirstChild("HandcuffRemote")
+    if not Remote then return end
+    
+    local bp = LocalPlayer:FindFirstChild("Backpack")
+    if not bp then return nil end
+    local t = bp:FindFirstChild("Normal")
+    if t and LocalPlayer.Character then
+        t.Parent = LocalPlayer.Character
+        return t
+    end
+    return LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Normal")
+end
+
+local function safeInvoke(c)
+    local Remote = ReplicatedStorage:FindFirstChild("Framework") and ReplicatedStorage.Framework:FindFirstChild("Network") and ReplicatedStorage.Framework.Network:FindFirstChild("HandcuffRemote")
+    if not Remote then return end
+    pcall(function()
+        Remote:InvokeServer(getTool(), c)
+    end)
+end
+
+local function killTarget(char)
+    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if root and char then
+        Workspace.FallenPartsDestroyHeight = 0/0 
+        local oldPos = root.CFrame
+        getTool()
+        safeInvoke(char)
+        root.CFrame = KillPos
+        task.wait(0.3)
+        safeInvoke(char)
+        root.CFrame = oldPos
+        print("✅ تم محاولة قتل الهدف: " .. (char.Parent and char.Parent.Name or "غير محدد"))
+    end
+end
+
+-- دالة القتل اليدوي
+local function manualOneTimeKill()
+    if not Target then
+        warn("⚠️ يجب تحديد هدف أولاً قبل القتل اليدوي. استخدم مربع البحث أو أداة التحديد.")
+        return
+    end
+
+    local targetChar = Target.Character
+    if not targetChar then
+        warn("⚠️ شخصية الهدف غير موجودة حالياً.")
+        return
+    end
+
+    killTarget(targetChar)
+end
+
+local function startKillLoop()
+    if KillCharConn then KillCharConn:Disconnect() KillCharConn = nil end
+    if not Target then return end
+
+    local function checkAndKill(newChar)
+        task.wait(0.5)
+        if KillLoop and newChar and newChar.Parent then
+            local hum = newChar:FindFirstChild("Humanoid")
+            if hum then
+                if hum.Health >= hum.MaxHealth then
+                    killTarget(newChar)
+                else
+                    local temp
+                    temp = hum.HealthChanged:Connect(function(h)
+                        if KillLoop and h >= hum.MaxHealth then
+                            killTarget(newChar)
+                            if temp then temp:Disconnect() temp = nil end
+                        end
+                    end)
+                end
+            end
+        end
+    end
+
+    if Target.Character then checkAndKill(Target.Character) end
+    KillCharConn = Target.CharacterAdded:Connect(checkAndKill)
+end
+
+-- ================================================================
+-- 🔍 نظام البحث والتحديد 🔍
+-- ================================================================
+local function startsWith(s, p)
+    if not s or not p then return false end
+    return s:sub(1, #p):lower() == p:lower()
+end
+
+local function findPlayer(part)
+    if not part then return nil end
+    part = part:lower()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if startsWith(p.Name, part) or startsWith(p.DisplayName, part) then
+            return p
+        end
+    end
+    return nil
+end
+
+local function setTarget(p)
+    if KillCharConn then KillCharConn:Disconnect() KillCharConn = nil end
+    Target = p
+    if p then
+        SavedTargetName = p.Name
+        if KillLoop then startKillLoop() end
+    else
+        SavedTargetName = nil
+    end
+    
+    local killText = (KillLoop and "تشغيل" or "إيقاف")
+    local ui = LocalPlayer.PlayerGui:FindFirstChild("DeveloperYaseenUI")
+    if ui then
+        local killBtn = ui.MainFrame.ContentFrame.TargetButtonsFrame:FindFirstChild("KillButton")
+        if killBtn then
+             killBtn.Text = "قتل تلقائي: " .. killText .. (Target and " ("..Target.Name..")" or "")
+        end
+        local searchBox = ui.MainFrame.ContentFrame:FindFirstChild("SearchBox")
+        if searchBox then
+            searchBox.Text = p and p.Name or ""
+        end
+    end
+end
+
+-- ================================================================
+-- 🔗 نظام سحب اللاعبين 🔗
+-- ================================================================
+local function GetAutoHandcuffCount()
+    local count = 0
+    for _ in pairs(AutoHandcuffList) do
+        count += 1
+    end
+    return count
+end
+
+local HandcuffPlayer
+HandcuffPlayer = function(targetPlayer)
+    if handcuffDebounce[targetPlayer.Name] and os.time() - handcuffDebounce[targetPlayer.Name] < 1.5 then
+        return false
+    end
+    handcuffDebounce[targetPlayer.Name] = os.time()
+        
+    if not targetPlayer or not targetPlayer.Character then
+        return false
+    end
+        
+    safeInvoke(targetPlayer.Character)
+        
+    if AutoHandcuffList[targetPlayer.Name] then
+        AutoHandcuffList[targetPlayer.Name].LastHandcuffTime = os.time()
+        AutoHandcuffList[targetPlayer.Name].HandcuffCount += 1
+    end
+        
+    print("✅ تم سحب اللاعب:", targetPlayer.Name)
+    return true
+end
+
+local function AddToAutoHandcuff(player)
+    local existingData = AutoHandcuffList[player.Name]
+
+    if existingData and existingData.CharacterAddedConnection then
+        existingData.CharacterAddedConnection:Disconnect()
+        existingData.CharacterAddedConnection = nil
+    end
+
+    local connection
+    connection = player.CharacterAdded:Connect(function()
+        task.wait(0.1)
+        if AutoHandcuffList[player.Name] then
+            HandcuffPlayer(player)
+        end
+    end)
+
+    AutoHandcuffList[player.Name] = {
+        Player = player, 
+        LastHandcuffTime = os.time(),
+        HandcuffCount = existingData and existingData.HandcuffCount or 0, 
+        CharacterAddedConnection = connection 
+    }
+
+    if player.Character then
+        HandcuffPlayer(player)
+    end
+
+    return true
+end
+
+local function HandcuffAllPlayers()
+    local players = Players:GetPlayers()
+    local handcuffedCount = 0
+        
+    for _, player in pairs(players) do
+        if stopHandcuffing then break end
+                
+        if player ~= LocalPlayer and player.Character then
+            local success = HandcuffPlayer(player)
+            if success then
+                handcuffedCount += 1
+                AddToAutoHandcuff(player)
+            end
+                        
+            task.wait(1)
+        end
+    end
+        
+    return handcuffedCount
+end
+
+-- ================================================================
+-- 🎨 إنشاء الواجهة 🎨
+-- ================================================================
+local playerGui = LocalPlayer:WaitForChild("PlayerGui")
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "DeveloperYaseenUI"
+ScreenGui.Parent = playerGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
+
+-- الإطار الرئيسي
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 250, 0, 480)
+MainFrame.Position = UDim2.new(0.5, -125, 0.1, 0)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
+MainFrame.Visible = true 
+
+-- حدود حمراء للإطار الرئيسي
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Thickness = 2
+MainStroke.Color = Color3.fromRGB(255, 0, 0)
+MainStroke.Parent = MainFrame
+
+-- زوايا مستديرة للإطار الرئيسي
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 8)
+MainCorner.Parent = MainFrame
+
+-- شريط العنوان
+local TitleBar = Instance.new("Frame")
+TitleBar.Name = "TitleBar"
+TitleBar.Size = UDim2.new(1, 0, 0, 30)
+TitleBar.Position = UDim2.new(0, 0, 0, 0)
+TitleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+-- العنوان
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Size = UDim2.new(0.7, 0, 1, 0)
+Title.Position = UDim2.new(0, 5, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Font = Enum.Font.GothamBold
+Title.Text = "مطور ياسين V2.9 - متقدم" 
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 12
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TitleBar
+
+-- زر الإغلاق
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "CloseButton"
+CloseButton.Size = UDim2.new(0, 20, 0, 20)
+CloseButton.Position = UDim2.new(1, -25, 0.5, -10)
+CloseButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+CloseButton.BorderSizePixel = 0
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 10
+CloseButton.Parent = TitleBar
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 5)
+CloseCorner.Parent = CloseButton
+
+-- زر فتح/إخفاء
+local ToggleUIButton = Instance.new("TextButton")
+ToggleUIButton.Name = "ToggleUIButton"
+ToggleUIButton.Size = UDim2.new(0, 20, 0, 20)
+ToggleUIButton.Position = UDim2.new(1, -50, 0.5, -10)
+ToggleUIButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+ToggleUIButton.BorderSizePixel = 0
+ToggleUIButton.Font = Enum.Font.GothamBold
+ToggleUIButton.Text = "_"
+ToggleUIButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleUIButton.TextSize = 10
+ToggleUIButton.Parent = TitleBar
+
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(0, 5)
+ToggleCorner.Parent = ToggleUIButton
+
+-- حاوية المحتوى
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Name = "ContentFrame"
+ContentFrame.Size = UDim2.new(1, 0, 1, -30)
+ContentFrame.Position = UDim2.new(0, 0, 0, 30)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.Parent = MainFrame
+
+-- حقل البحث
+local SearchBox = Instance.new("TextBox")
+SearchBox.Name = "SearchBox"
+SearchBox.Size = UDim2.new(1, -10, 0, 25)
+SearchBox.Position = UDim2.new(0, 5, 0, 5)
+SearchBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+SearchBox.PlaceholderText = "ابحث عن لاعب..."
+SearchBox.PlaceholderColor3 = Color3.fromRGB(180, 180, 180)
+SearchBox.Text = ""
+SearchBox.TextSize = 11
+SearchBox.Font = Enum.Font.Gotham
+SearchBox.Parent = ContentFrame
+
+local SearchCorner = Instance.new("UICorner")
+SearchCorner.CornerRadius = UDim.new(0, 6)
+SearchCorner.Parent = SearchBox
+
+-- أزرار التحكم - القسم العام
+local GeneralButtonsFrame = Instance.new("Frame")
+GeneralButtonsFrame.Name = "GeneralButtonsFrame"
+GeneralButtonsFrame.Size = UDim2.new(1, -10, 0, 130)
+GeneralButtonsFrame.Position = UDim2.new(0, 5, 0, 35)
+GeneralButtonsFrame.BackgroundTransparency = 1
+GeneralButtonsFrame.Parent = ContentFrame
+
+local ButtonHeight = 25
+local Padding = 5
+
+-- الصف الأول: سحب الجميع / إيقاف السحب
+local HandcuffAllButton = Instance.new("TextButton", GeneralButtonsFrame)
+HandcuffAllButton.Name = "HandcuffAllButton"
+HandcuffAllButton.Size = UDim2.new(1, 0, 0, ButtonHeight) 
+HandcuffAllButton.Position = UDim2.new(0, 0, 0, 0)
+HandcuffAllButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80) 
+HandcuffAllButton.BorderSizePixel = 0
+HandcuffAllButton.Font = Enum.Font.GothamBold
+HandcuffAllButton.Text = "سحب الجميع"
+HandcuffAllButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+HandcuffAllButton.TextSize = 13
+
+Instance.new("UICorner", HandcuffAllButton).CornerRadius = UDim.new(0, 6)
+
+local StopAllButton = Instance.new("TextButton", GeneralButtonsFrame)
+StopAllButton.Name = "StopAllButton"
+StopAllButton.Size = UDim2.new(1, 0, 0, ButtonHeight) 
+StopAllButton.Position = UDim2.new(0, 0, 0, 0)
+StopAllButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100) 
+StopAllButton.BorderSizePixel = 0
+StopAllButton.Font = Enum.Font.GothamBold
+StopAllButton.Text = "إيقاف السحب"
+StopAllButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+StopAllButton.TextSize = 13
+StopAllButton.Visible = false 
+StopAllButton.ZIndex = 2
+
+Instance.new("UICorner", StopAllButton).CornerRadius = UDim.new(0, 6)
+
+-- الصف الثاني: تشغيل الأرضية (يسار) | إضافات (يمين)
+local FloorButton = Instance.new("TextButton", GeneralButtonsFrame)
+FloorButton.Name = "FloorButton"
+FloorButton.Size = UDim2.new(0.48, 0, 0, ButtonHeight) 
+FloorButton.Position = UDim2.new(0, 0, 0, ButtonHeight + Padding) 
+FloorButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80) 
+FloorButton.BorderSizePixel = 0
+FloorButton.Font = Enum.Font.GothamBold
+FloorButton.Text = "تشغيل الأرضية"
+FloorButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+FloorButton.TextSize = 11
+
+Instance.new("UICorner", FloorButton).CornerRadius = UDim.new(0, 6)
+
+local AdditionsButton = Instance.new("TextButton", GeneralButtonsFrame)
+AdditionsButton.Name = "AdditionsButton"
+AdditionsButton.Size = UDim2.new(0.48, 0, 0, ButtonHeight)
+AdditionsButton.Position = UDim2.new(0.52, 0, 0, ButtonHeight + Padding) 
+AdditionsButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80) 
+AdditionsButton.BorderSizePixel = 0
+AdditionsButton.Font = Enum.Font.GothamBold
+AdditionsButton.Text = "إضافات (تشغيل سكربت)"
+AdditionsButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AdditionsButton.TextSize = 9
+
+Instance.new("UICorner", AdditionsButton).CornerRadius = UDim.new(0, 6)
+
+-- الصف الثالث: Game Paused (يسار) | Auto Game Paused (يمين)
+local GamePausedBtn = Instance.new("TextButton", GeneralButtonsFrame)
+GamePausedBtn.Name = "GamePausedButton"
+GamePausedBtn.Size = UDim2.new(0.48, 0, 0, ButtonHeight)
+GamePausedBtn.Position = UDim2.new(0, 0, 0, 2 * (ButtonHeight + Padding)) 
+GamePausedBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80) 
+GamePausedBtn.BorderSizePixel = 0
+GamePausedBtn.Font = Enum.Font.GothamBold
+GamePausedBtn.Text = "⏸️ Game Paused"
+GamePausedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+GamePausedBtn.TextSize = 9
+
+Instance.new("UICorner", GamePausedBtn).CornerRadius = UDim.new(0, 6)
+
+local AutoGamePausedBtn = Instance.new("TextButton", GeneralButtonsFrame)
+AutoGamePausedBtn.Name = "AutoGamePausedButton"
+AutoGamePausedBtn.Size = UDim2.new(0.48, 0, 0, ButtonHeight)
+AutoGamePausedBtn.Position = UDim2.new(0.52, 0, 0, 2 * (ButtonHeight + Padding)) 
+AutoGamePausedBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80) 
+AutoGamePausedBtn.BorderSizePixel = 0
+AutoGamePausedBtn.Font = Enum.Font.GothamBold
+AutoGamePausedBtn.Text = "🔄 AUTO GAME PUSED"
+AutoGamePausedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoGamePausedBtn.TextSize = 9
+
+Instance.new("UICorner", AutoGamePausedBtn).CornerRadius = UDim.new(0, 6)
+
+-- الصف الرابع: إزالة المراقبة
+local ClearAutoHandcuffButton = Instance.new("TextButton", GeneralButtonsFrame)
+ClearAutoHandcuffButton.Name = "ClearAutoHandcuffButton"
+ClearAutoHandcuffButton.Size = UDim2.new(1, 0, 0, ButtonHeight) 
+ClearAutoHandcuffButton.Position = UDim2.new(0, 0, 0, 3 * (ButtonHeight + Padding)) 
+ClearAutoHandcuffButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80) 
+ClearAutoHandcuffButton.BorderSizePixel = 0
+ClearAutoHandcuffButton.Font = Enum.Font.GothamBold
+ClearAutoHandcuffButton.Text = "إزالة المراقبة (0)"
+ClearAutoHandcuffButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ClearAutoHandcuffButton.TextSize = 11
+
+Instance.new("UICorner", ClearAutoHandcuffButton).CornerRadius = UDim.new(0, 6)
+
+-- أزرار التحكم - القسم الخاص بالهدف
+local TargetButtonsFrame = Instance.new("Frame")
+TargetButtonsFrame.Name = "TargetButtonsFrame"
+TargetButtonsFrame.Size = UDim2.new(1, -10, 0, 60)
+TargetButtonsFrame.Position = UDim2.new(0, 5, 0, 175)
+TargetButtonsFrame.BackgroundTransparency = 1
+TargetButtonsFrame.Parent = ContentFrame
+
+-- الصف الأول للـ TargetButtonsFrame (AntiBang/Kill)
+local AntiBangBtn = Instance.new("TextButton", TargetButtonsFrame)
+AntiBangBtn.Name = "AntiBangButton"
+AntiBangBtn.Size = UDim2.new(0.48, 0, 0, ButtonHeight) 
+AntiBangBtn.Position = UDim2.new(0, 0, 0, 0)
+AntiBangBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+AntiBangBtn.TextColor3 = Color3.new(1, 1, 1)
+AntiBangBtn.Text = "مضاد بانغ: إيقاف"
+AntiBangBtn.TextSize = 10
+
+Instance.new("UICorner", AntiBangBtn).CornerRadius = UDim.new(0, 6)
+
+local KillBtn = Instance.new("TextButton", TargetButtonsFrame)
+KillBtn.Name = "KillButton"
+KillBtn.Size = UDim2.new(0.48, 0, 0, ButtonHeight) 
+KillBtn.Position = UDim2.new(0.52, 0, 0, 0)
+KillBtn.BackgroundColor3 = Color3.fromRGB(55, 0, 0) 
+KillBtn.TextColor3 = Color3.new(1, 1, 1)
+KillBtn.Text = "قتل تلقائي: إيقاف"
+KillBtn.TextSize = 10
+
+Instance.new("UICorner", KillBtn).CornerRadius = UDim.new(0, 6)
+
+-- الصف الثاني للـ TargetButtonsFrame (OneTimeKill/TargetTool)
+local OneTimeKillBtn = Instance.new("TextButton", TargetButtonsFrame)
+OneTimeKillBtn.Name = "OneTimeKillButton"
+OneTimeKillBtn.Size = UDim2.new(0.48, 0, 0, ButtonHeight) 
+OneTimeKillBtn.Position = UDim2.new(0, 0, 0, ButtonHeight + Padding)
+OneTimeKillBtn.BackgroundColor3 = Color3.fromRGB(80, 0, 0) 
+OneTimeKillBtn.TextColor3 = Color3.new(1, 1, 1)
+OneTimeKillBtn.Text = "قتل لمرة واحدة"
+OneTimeKillBtn.TextSize = 10
+
+Instance.new("UICorner", OneTimeKillBtn).CornerRadius = UDim.new(0, 6)
+
+local TargetToolBtn = Instance.new("TextButton", TargetButtonsFrame)
+TargetToolBtn.Name = "TargetToolButton"
+TargetToolBtn.Size = UDim2.new(0.48, 0, 0, ButtonHeight) 
+TargetToolBtn.Position = UDim2.new(0.52, 0, 0, ButtonHeight + Padding)
+TargetToolBtn.BackgroundColor3 = Color3.fromRGB(0, 70, 0) 
+TargetToolBtn.TextColor3 = Color3.new(1, 1, 1)
+TargetToolBtn.Text = "🎯 أداة تحديد الهدف"
+TargetToolBtn.TextSize = 9
+
+Instance.new("UICorner", TargetToolBtn).CornerRadius = UDim.new(0, 6)
+
+-- قائمة اللاعبين
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Name = "ScrollFrame"
+ScrollFrame.Size = UDim2.new(1, -10, 1, -260)
+ScrollFrame.Position = UDim2.new(0, 5, 0, 250)
+ScrollFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ScrollFrame.BorderSizePixel = 0
+ScrollFrame.ScrollBarThickness = 5
+ScrollFrame.Parent = ContentFrame
+
+-- حدود حمراء للقائمة
+local ScrollStroke = Instance.new("UIStroke")
+ScrollStroke.Thickness = 2
+ScrollStroke.Color = Color3.fromRGB(255, 0, 0)
+ScrollStroke.Parent = ScrollFrame
+
+-- زوايا مستديرة للقائمة
+local ScrollCorner = Instance.new("UICorner")
+ScrollCorner.CornerRadius = UDim.new(0, 8)
+ScrollCorner.Parent = ScrollFrame
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Parent = ScrollFrame
+UIListLayout.Padding = UDim.new(0, 3)
+
+-- ================================================================
+-- 🎯 نظام Target Tool 🎯
+-- ================================================================
+local function createTargetTool()
+    local old = LocalPlayer.Backpack:FindFirstChild("Target Selector")
+    if old then old:Destroy() end
+
+    local tool = Instance.new("Tool")
+    tool.Name = "Target Selector"
+    tool.RequiresHandle = false
+    tool.CanBeDropped = false
+    tool.Parent = LocalPlayer:WaitForChild("Backpack")
+
+    local mouse = LocalPlayer:GetMouse()
+    local clickConn
+
+    tool.Equipped:Connect(function()
+        local normalTool = LocalPlayer.Character:FindFirstChild("Normal")
+        if normalTool then
+            normalTool.Parent = LocalPlayer.Backpack
+        end
+        
+        clickConn = mouse.Button1Down:Connect(function()
+            local part = mouse.Target
+            if not part then return end
+
+            local char = part:FindFirstAncestorWhichIsA("Model")
+            if not char then return end
+
+            local plr = Players:GetPlayerFromCharacter(char)
+            if not plr or plr == LocalPlayer then return end
+
+            setTarget(plr)
+            LocalPlayer.Character:WaitForChild("Humanoid"):UnequipTools()
+        end)
+    end)
+
+    tool.Unequipped:Connect(function()
+        if clickConn then clickConn:Disconnect() clickConn = nil end
+    end)
+end
+
+local function stopTargetTool()
+    local tool = LocalPlayer.Backpack:FindFirstChild("Target Selector")
+    if tool then
+        tool:Destroy()
+    end
+end
+
+-- ================================================================
+-- 🧱 نظام الأرضية 🧱
+-- ================================================================
+local floorEnabled = false
+local playerFloor = nil
+
+local function updateFloorUnderPlayer()
+    if not floorEnabled then return end
+    
+    local character = LocalPlayer.Character
+    if not character then return end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    
+    if not playerFloor or not playerFloor.Parent then
+        playerFloor = Instance.new("Part")
+        playerFloor.Name = "PlayerFloor_" .. LocalPlayer.Name
+        playerFloor.Size = Vector3.new(12, 1, 12)
+        playerFloor.BrickColor = BrickColor.new("Bright red")
+        playerFloor.Material = Enum.Material.Neon
+        playerFloor.Anchored = true
+        playerFloor.CanCollide = true
+        playerFloor.Transparency = 0.3
+        playerFloor.Parent = Workspace
+    end
+    
+    playerFloor.Position = Vector3.new(
+        humanoidRootPart.Position.X,
+        humanoidRootPart.Position.Y - 4,
+        humanoidRootPart.Position.Z
+    )
+end
+
+-- ================================================================
+-- 🔄 نظام تحديث القوائم 🔄
+-- ================================================================
+local function UpdateAutoHandcuffButton()
+    ClearAutoHandcuffButton.Text = "إزالة المراقبة (" .. GetAutoHandcuffCount() .. ")"
+end
+
+local function UpdatePlayersList(searchText)
+    searchText = searchText or ""
+    searchText = string.lower(searchText)
+    
+    for _, child in pairs(ScrollFrame:GetChildren()) do
+        if child:IsA("Frame") and string.find(child.Name, "Player_") then
+            child:Destroy()
+        end
+    end
+    
+    local players = Players:GetPlayers()
+    
+    for _, player in pairs(players) do
+        if player ~= LocalPlayer then
+            local playerName = string.lower(player.Name)
+            local displayName = string.lower(player.DisplayName)
+            
+            if searchText == "" or 
+               string.find(playerName, searchText, 1, true) or 
+               string.find(displayName, searchText, 1, true) then
+                
+                local playerFrame = Instance.new("Frame")
+                playerFrame.Name = "Player_" .. player.Name .. "_" .. HttpService:GenerateGUID(false)
+                playerFrame.Size = UDim2.new(1, 0, 0, 35)
+                playerFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                playerFrame.BorderSizePixel = 0
+                playerFrame.Parent = ScrollFrame
+                
+                local PlayerFrameCorner = Instance.new("UICorner")
+                PlayerFrameCorner.CornerRadius = UDim.new(0, 6)
+                PlayerFrameCorner.Parent = playerFrame
+                
+                local nameLabel = Instance.new("TextLabel")
+                nameLabel.Name = "NameLabel"
+                nameLabel.Size = UDim2.new(0.7, -5, 1, 0)
+                nameLabel.Position = UDim2.new(0, 0, 0, 0)
+                nameLabel.BackgroundTransparency = 1
+                nameLabel.Text = player.DisplayName .. "\n@" .. player.Name
+                nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                nameLabel.TextSize = 9
+                nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+                nameLabel.Font = Enum.Font.Gotham
+                nameLabel.Parent = playerFrame
+                
+                -- مؤشر المراقبة التلقائية
+                if AutoHandcuffList[player.Name] then
+                    local autoIndicator = Instance.new("TextLabel")
+                    autoIndicator.Name = "AutoIndicator"
+                    autoIndicator.Size = UDim2.new(0.7, -5, 0, 10)
+                    autoIndicator.Position = UDim2.new(0, 0, 0.65, 0)
+                    autoIndicator.BackgroundTransparency = 1
+                    autoIndicator.Text = "مراقب تلقائي"
+                    autoIndicator.TextColor3 = Color3.fromRGB(255, 100, 100)
+                    autoIndicator.TextSize = 8
+                    autoIndicator.TextXAlignment = Enum.TextXAlignment.Left
+                    autoIndicator.Font = Enum.Font.Gotham
+                    autoIndicator.Parent = playerFrame
+                end
+                
+                local handcuffButton = Instance.new("TextButton")
+                handcuffButton.Name = "HandcuffButton"
+                handcuffButton.Size = UDim2.new(0.3, 0, 0, 20)
+                handcuffButton.Position = UDim2.new(0.7, 5, 0.5, -10)
+                handcuffButton.BackgroundColor3 = AutoHandcuffList[player.Name] and Color3.fromRGB(120, 60, 60) or Color3.fromRGB(80, 80, 80)
+                handcuffButton.BorderSizePixel = 0
+                handcuffButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+                handcuffButton.Text = AutoHandcuffList[player.Name] and "🔄" or "سحب"
+                handcuffButton.TextSize = 9
+                handcuffButton.Font = Enum.Font.GothamBold
+                handcuffButton.Parent = playerFrame
+                
+                local ButtonCorner = Instance.new("UICorner")
+                ButtonCorner.CornerRadius = UDim.new(0, 6)
+                ButtonCorner.Parent = handcuffButton
+                
+                handcuffButton.MouseButton1Click:Connect(function()
+                    handcuffButton.Text = "..."
+                    handcuffButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+                    
+                    local success = HandcuffPlayer(player)
+                    
+                    if success then
+                        handcuffButton.Text = "✓"
+                        handcuffButton.BackgroundColor3 = Color3.fromRGB(60, 120, 60)
+                        
+                        AddToAutoHandcuff(player)
+                        UpdateAutoHandcuffButton()
+                    else
+                        handcuffButton.Text = "✗"
+                        handcuffButton.BackgroundColor3 = Color3.fromRGB(120, 60, 60)
+                    end
+                    
+                    task.wait(1.5)
+                    handcuffButton.Text = AutoHandcuffList[player.Name] and "🔄" or "سحب"
+                    handcuffButton.BackgroundColor3 = AutoHandcuffList[player.Name] and Color3.fromRGB(120, 60, 60) or Color3.fromRGB(80, 80, 80)
+                end)
+                
+            end
+        end
+    end
+    
+    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
+end
+
+-- ================================================================
+-- 🎮 نظام السحب والإفلات 🎮
+-- ================================================================
+local Dragging = false
+local DragInput, DragStart, StartPosition
+
+local function Update(input)
+    local Delta = input.Position - DragStart
+    MainFrame.Position = UDim2.new(
+        StartPosition.X.Scale, 
+        StartPosition.X.Offset + Delta.X,
+        StartPosition.Y.Scale, 
+        StartPosition.Y.Offset + Delta.Y
+    )
+end
+
+TitleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        Dragging = true
+        DragStart = input.Position
+        StartPosition = MainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                Dragging = false
+            end
+        end)
+    end
+end)
+
+TitleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        DragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == DragInput and Dragging then
+        Update(input)
+    end
+end)
+
+-- ================================================================
+-- ⚡ الأحداث الرئيسية ⚡
+-- ================================================================
+CloseButton.MouseButton1Click:Connect(function()
+    stopHandcuffing = true 
+    stopAutoGamePaused()
+    stopTargetTool()
+    ScreenGui:Destroy()
+    if playerFloor then
+        playerFloor:Destroy()
+    end
+    for _, data in pairs(AutoHandcuffList) do
+        if data.CharacterAddedConnection then
+            data.CharacterAddedConnection:Disconnect()
+        end
+    end
+    if KillCharConn then KillCharConn:Disconnect() KillCharConn = nil end
+    disconnectAntiBang()
+end)
+
+ToggleUIButton.MouseButton1Click:Connect(function()
+    local isVisible = MainFrame.Visible
+    
+    if isVisible then
+        MainFrame.Visible = false
+        local OpenButton = ScreenGui:FindFirstChild("MiniOpenButton")
+        if not OpenButton then
+            OpenButton = Instance.new("TextButton")
+            OpenButton.Name = "MiniOpenButton"
+            OpenButton.Size = UDim2.new(0, 120, 0, 25)
+            OpenButton.Position = UDim2.new(0.5, -60, 0.1, 0) 
+            OpenButton.AnchorPoint = Vector2.new(0.5, 0)
+            OpenButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+            OpenButton.BorderSizePixel = 2
+            OpenButton.BorderColor3 = Color3.fromRGB(255, 0, 0)
+            OpenButton.Font = Enum.Font.GothamBold
+            OpenButton.Text = "ياسين V2.9"
+            OpenButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            OpenButton.TextSize = 12
+            OpenButton.Parent = ScreenGui
+            
+            Instance.new("UICorner", OpenButton).CornerRadius = UDim.new(0, 8)
+            
+            OpenButton.MouseButton1Click:Connect(function()
+                MainFrame.Visible = true
+                OpenButton:Destroy()
+            end)
+        end
+    else
+        MainFrame.Visible = true
+        local OpenButton = ScreenGui:FindFirstChild("MiniOpenButton")
+        if OpenButton then
+            OpenButton:Destroy()
+        end
+    end
+end)
+
+SearchBox.FocusLost:Connect(function()
+    UpdatePlayersList(SearchBox.Text)
+
+    local found = findPlayer(SearchBox.Text)
+    if found then
+        setTarget(found)
+    else
+        SavedTargetName = (SearchBox.Text ~= "" and SearchBox.Text) or nil
+        Target = nil
+        if KillCharConn then KillCharConn:Disconnect() KillCharConn = nil end
+        
+        local killText = (KillLoop and "تشغيل" or "إيقاف")
+        KillBtn.Text = "قتل تلقائي: " .. killText
+    end
+
+    local killText = (KillLoop and "تشغيل" or "إيقاف")
+    KillBtn.Text = "قتل تلقائي: " .. killText .. (Target and " ("..Target.Name..")" or "")
+end)
+
+SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+    UpdatePlayersList(SearchBox.Text)
+end)
+
+-- أحداث الأزرار
+StopAllButton.MouseButton1Click:Connect(function()
+    stopHandcuffing = true
+end)
+
+HandcuffAllButton.MouseButton1Click:Connect(function()
+    HandcuffAllButton.Visible = false
+    StopAllButton.Visible = true
+    stopHandcuffing = false
+
+    StopAllButton.Text = "جاري السحب... (اضغط للإيقاف)"
+
+    task.spawn(function()
+        local count = HandcuffAllPlayers()
+
+        StopAllButton.Visible = false
+        HandcuffAllButton.Visible = true
+
+        if stopHandcuffing then
+            HandcuffAllButton.Text = "تم الإيقاف عند " .. count
+            HandcuffAllButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        else
+            HandcuffAllButton.Text = "تم سحب " .. count .. " لاعب"
+            HandcuffAllButton.BackgroundColor3 = Color3.fromRGB(60, 120, 60)
+        end
+
+        UpdateAutoHandcuffButton()
+
+        task.wait(2)
+        HandcuffAllButton.Text = "سحب الجميع" 
+        HandcuffAllButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80) 
+    end)
+end)
+
+KillBtn.MouseButton1Click:Connect(function()
+    KillLoop = not KillLoop
+    SavedKill = KillLoop
+
+    local killText = (KillLoop and "تشغيل" or "إيقاف")
+    KillBtn.Text = "قتل تلقائي: " .. killText .. (Target and " ("..Target.Name..")" or "")
+
+    if KillLoop then
+        if Target then
+            startKillLoop()
+        else
+            warn("⚠️ لم يتم تحديد هدف للقتل التلقائي. اكتب اسم اللاعب في مربع البحث أو استخدم أداة التحديد أولاً.")
+        end
+        KillBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+    else
+        if KillCharConn then KillCharConn:Disconnect() KillCharConn = nil end
+        KillBtn.BackgroundColor3 = Color3.fromRGB(55, 0, 0)
+    end
+end)
+
+OneTimeKillBtn.MouseButton1Click:Connect(function()
+    local originalText = OneTimeKillBtn.Text
+    
+    if not Target then
+        OneTimeKillBtn.Text = "❌ حدد هدف أولاً"
+        OneTimeKillBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+    else
+        OneTimeKillBtn.Text = "جاري القتل..."
+        OneTimeKillBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+        
+        manualOneTimeKill()
+        
+        OneTimeKillBtn.Text = "تم القتل ✓"
+        OneTimeKillBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
+    end
+    
+    task.wait(2)
+    OneTimeKillBtn.Text = originalText
+    OneTimeKillBtn.BackgroundColor3 = Color3.fromRGB(80, 0, 0)
+end)
+
+AntiBangBtn.MouseButton1Click:Connect(function()
+    AntiBang = not AntiBang
+    AntiBangBtn.Text = "مضاد بانغ: " .. (AntiBang and "تشغيل" or "إيقاف")
+    
+    if AntiBang then
+        connectAntiBangTouch()
+        if not ProximityLoopConn then 
+            connectAntiBangProximityLoop()
+        end
+        AntiBangBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
+    else
+        disconnectAntiBang()
+        AntiBangBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    end
+end)
+
+TargetToolBtn.MouseButton1Click:Connect(function()
+    createTargetTool()
+    local originalText = TargetToolBtn.Text
+    TargetToolBtn.Text = "الأداة في حقيبتك! (انقر لإعادة الإنشاء)"
+    TargetToolBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+    task.wait(2)
+    TargetToolBtn.Text = originalText
+    TargetToolBtn.BackgroundColor3 = Color3.fromRGB(0, 70, 0)
+end)
+
+GamePausedBtn.MouseButton1Click:Connect(function()
+    teleportToFarLocation()
+    local originalColor = GamePausedBtn.BackgroundColor3
+    GamePausedBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+    GamePausedBtn.Text = "⏸️ جاري الانتقال..."
+    task.wait(1)
+    GamePausedBtn.BackgroundColor3 = originalColor
+    GamePausedBtn.Text = "⏸️ Game Paused"
+end)
+
+AutoGamePausedBtn.MouseButton1Click:Connect(function()
+    AutoGamePaused = not AutoGamePaused
+    if AutoGamePaused then
+        startAutoGamePaused()
+        AutoGamePausedBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 200)
+        AutoGamePausedBtn.Text = "🔄 AUTO: تشغيل"
+    else
+        stopAutoGamePaused()
+        AutoGamePausedBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+        AutoGamePausedBtn.Text = "🔄 AUTO GAME PUSED"
+    end
+end)
+
+AdditionsButton.MouseButton1Click:Connect(function()
+    local originalText = AdditionsButton.Text
+    local originalColor = AdditionsButton.BackgroundColor3
+    
+    AdditionsButton.Text = "جاري التحميل..."
+    AdditionsButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    
+    task.spawn(function()
+        local success1 = pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/VR7ss/OMK/refs/heads/main/VR7-ON-TOP"))()
+        end)
+        
+        task.wait(0.5)
+        
+        local success2 = pcall(function()
+            loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Gui-Fly-v3-37111"))()
+        end)
+        
+        if success1 or success2 then
+            print("✅ تم تشغيل السكربتات الخارجية بنجاح (أو جزئياً).")
+            AdditionsButton.Text = "تم التشغيل ✓"
+            AdditionsButton.BackgroundColor3 = Color3.fromRGB(60, 120, 60)
+        else
+            warn("❌ فشل تشغيل جميع السكربتات الخارجية.")
+            AdditionsButton.Text = "فشل ✗"
+            AdditionsButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+        end
+        
+        task.wait(3)
+        AdditionsButton.Text = originalText
+        AdditionsButton.BackgroundColor3 = originalColor
+    end)
+end)
+
+FloorButton.MouseButton1Click:Connect(function()
+    floorEnabled = not floorEnabled
+    
+    if floorEnabled then
+        FloorButton.Text = "إيقاف الأرضية"
+        FloorButton.BackgroundColor3 = Color3.fromRGB(120, 60, 60)
+    else
+        FloorButton.Text = "تشغيل الأرضية"
+        FloorButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+        if playerFloor then
+            playerFloor:Destroy()
+            playerFloor = nil
+        end
+    end
+end)
+
+ClearAutoHandcuffButton.MouseButton1Click:Connect(function()
+    for _, data in pairs(AutoHandcuffList) do
+        if data.CharacterAddedConnection then
+            data.CharacterAddedConnection:Disconnect()
+        end
+    end
+    
+    AutoHandcuffList = {}
+    UpdateAutoHandcuffButton()
+    UpdatePlayersList(SearchBox.Text)
+    
+    local originalText = ClearAutoHandcuffButton.Text
+    ClearAutoHandcuffButton.Text = "تم المسح"
+    task.wait(1.5)
+    ClearAutoHandcuffButton.Text = originalText
+end)
+
+-- أحداث النظام
+Players.PlayerAdded:Connect(function(player)
+    UpdatePlayersList(SearchBox.Text)
+    if AutoHandcuffList[player.Name] then
+        print("💡 تم اكتشاف لاعب مراقب عائد: "..player.Name..". جاري إعادة تفعيل المراقبة...")
+        AddToAutoHandcuff(player)
+    end
+    if SavedTargetName and player.Name:lower() == SavedTargetName:lower() then
+        setTarget(player)
+        SearchBox.Text = player.Name
+        if SavedKill then
+            KillLoop = true
+            KillBtn.Text = "قتل تلقائي: تشغيل ("..player.Name..")"
+            startKillLoop()
+        end
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    if AutoHandcuffList[player.Name] and AutoHandcuffList[player.Name].CharacterAddedConnection then
+        AutoHandcuffList[player.Name].CharacterAddedConnection:Disconnect()
+        AutoHandcuffList[player.Name].CharacterAddedConnection = nil
+    end
+    handcuffDebounce[player.Name] = nil
+    UpdateAutoHandcuffButton()
+    UpdatePlayersList(SearchBox.Text)
+    if player == Target then
+        Target = nil
+        if KillCharConn then KillCharConn:Disconnect() KillCharConn = nil end
+        KillBtn.Text = "قتل تلقائي: إيقاف"
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
+    if floorEnabled and LocalPlayer.Character then
+        updateFloorUnderPlayer()
+    end
+end)
+
+-- التحميل الأولي
+UpdatePlayersList()
+UpdateAutoHandcuffButton()
+
+if LocalPlayer.Character then
+    connectAntiBangProximityLoop()
+    connectAntiBangTouch()
+    createTargetTool()
+end
+
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(0.5)
+    if AntiBang then
+        connectAntiBangTouch()
+    end
+    createTargetTool()
+end)
+
+print("✅ تم تحميل سكربت مطور ياسين V2.9 بنجاح!")
+print("🎯 الميزات المتاحة:")
+print("   - نظام سحب اللاعبين التلقائي")
+print("   - نظام القتل التلقائي والفردي")
+print("   - نظام مضاد البانغ")
+print("   - نظام AUTO GAMEPLAY PAUSED المتقدم")
+print("   - أداة تحديد الهدف (Target Tool)")
+print("   - أرضية تحت اللاعب")
+print("   - تشغيل سكربتات إضافية")
